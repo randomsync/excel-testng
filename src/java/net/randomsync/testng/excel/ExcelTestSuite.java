@@ -1,27 +1,32 @@
 package net.randomsync.testng.excel;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import org.testng.xml.XmlSuite;
+import org.testng.xml.XmlTest;
 
 public class ExcelTestSuite {
 	public String name;
 	private List<ExcelTestCase> testCases;
-	
-	public ExcelTestSuite() {
-		super();
-		testCases = new ArrayList<ExcelTestCase>();
-	}
+	public Map<String, String> suiteParams;
 
 	public ExcelTestSuite(String name) {
-		super();
 		this.name = name;
 		testCases = new ArrayList<ExcelTestCase>();
+		suiteParams = new HashMap<String, String>();
 	}
 
 	public ExcelTestSuite(String name, List<ExcelTestCase> testCases) {
-		super();
-		this.name = name;
+		this(name);
 		this.testCases = testCases;
+	}
+
+	public ExcelTestSuite(String name, List<ExcelTestCase> testCases,
+			Map<String, String> params) {
+		this(name, testCases);
+		this.suiteParams = params;
 	}
 
 	/**
@@ -31,25 +36,33 @@ public class ExcelTestSuite {
 		return testCases;
 	}
 
+	public void addTestCase(ExcelTestCase testCase) {
+		this.testCases.add(testCase);
+	}
 
-	/**
-	 * @param testCases the testCases to set
-	 */
 	public void setTestCases(List<ExcelTestCase> testCases) {
 		this.testCases = testCases;
 	}
 
-
-	public void addTestCase(ExcelTestCase testCase){
-		this.testCases.add(testCase);
+	public void setSuiteParams(Map<String, String> params) {
+		this.suiteParams = params;
 	}
-	/**not implemented yet
-	 * @param xlFilePath path of the excel file
-	 * @param sheetName name of the worksheet 
+
+	/**
+	 * Returns the current suite as TestNG XmlSuite
 	 * 
+	 * @return the suite as TestNG XmlSuite
 	 */
-	public void populate(String xlFilePath, String sheetName){
-		
-	}
+	public XmlSuite getSuiteAsXmlSuite() {
+		XmlSuite suite = new XmlSuite();
+		suite.setName(this.name);
+		suite.setParameters(this.suiteParams);
+		List<XmlTest> xmltests = new ArrayList<XmlTest>();
+		for (ExcelTestCase tc : this.testCases) {
+			xmltests.add(tc.getTestAsXmlTest(suite));
+		}
+		suite.setTests(xmltests);
+		return suite;
 
+	}
 }

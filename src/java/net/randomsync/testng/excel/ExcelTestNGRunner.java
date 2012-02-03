@@ -1,26 +1,36 @@
 package net.randomsync.testng.excel;
 
+import java.io.File;
+
 import org.testng.TestNG;
 
 public class ExcelTestNGRunner {
-	private String xlFilePath;
+	private String source;
 	private TestNG testng;
 
-	public ExcelTestNGRunner(String xlFilePath) {
-		super();
-		this.xlFilePath = xlFilePath;
+	public ExcelTestNGRunner() {
 	}
 
-	public ExcelTestNGRunner(String xlFilePath, String workbookName) {
-		super();
-		this.xlFilePath = xlFilePath;
+	public ExcelTestNGRunner(String source) {
+		this.source = source;
 	}
 
-	public void parse() {
+
+	/**
+	 * @param xlFile
+	 *            - the xlFile to set
+	 */
+	public void setSource(String source) {
+		this.source = source;
+	}
+
+	public void setTestng(TestNG testng) {
+		this.testng = testng;
+	}
+
+	public void run() {
 		// TODO Auto-generated method stub
-		
+
 	}
-	
-	
 
 }
