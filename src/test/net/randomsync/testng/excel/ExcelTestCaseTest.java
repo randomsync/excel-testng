@@ -1,52 +1,98 @@
 package net.randomsync.testng.excel;
 
-import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.testng.xml.XmlClass;
 import org.testng.xml.XmlSuite;
+import org.testng.xml.XmlTest;
 
 public class ExcelTestCaseTest {
 
 	@Test
-	public void getParametersAsProperties() {
-		String params = "query=testng\nquery2=selenium";
-		ExcelTestCase tc = new ExcelTestCase(1, "Search",
+	public void testGetParametersValid() {
+		String params = "query=query 1\nquery2=query 2";
+		ExcelTestCase tc = new ExcelTestCase("1.1", "Search",
 				"Perform a search and validate results", params, null);
-		Properties p = null;
-		p = tc.getParametersAsProperties();
-		Assert.assertEquals(p.getProperty("query"), "testng");
-		Assert.assertEquals(p.getProperty("query2"), "selenium");
+		Properties p = tc.getParametersAsProperties();
+		Assert.assertEquals(p.size(), 2);
+		Assert.assertEquals(p.getProperty("query"), "query 1");
+		Assert.assertEquals(p.getProperty("query2"), "query 2");
 
 	}
 
 	@Test
-	public void getXmlClasses1() {
-		ExcelTestCase tc = new ExcelTestCase(1, "Search",
+	public void testGetParametersNull() {
+		ExcelTestCase tc = new ExcelTestCase("1.1", "Search",
+				"Perform a search and validate results", null, null);
+		Properties p = tc.getParametersAsProperties();
+		Assert.assertEquals(p.size(), 0);
+
+	}
+
+	@Test
+	public void testGetParametersBlank() {
+		ExcelTestCase tc = new ExcelTestCase("1.1", "Search",
+				"Perform a search and validate results", "", null);
+		Properties p = tc.getParametersAsProperties();
+		Assert.assertEquals(p.size(), 0);
+
+	}
+
+	@Test
+	public void testSetParameters() {
+		ExcelTestCase tc = new ExcelTestCase("1.1", "Search",
+				"Perform a search and validate results", null, null);
+		tc.setParameters("query1=query abc");
+		Properties p = tc.getParametersAsProperties();
+		Assert.assertEquals(p.getProperty("query1"), "query abc");
+
+	}
+
+	@Test
+	public void testGetXmlClasses() {
+		ExcelTestCase tc = new ExcelTestCase("1.1", "Search",
 				"Perform a search and validate results", null, null);
 		Assert.assertEquals(tc.getXmlClasses().size(), 0);
-		tc.setXmlClasses(Arrays.asList(new XmlClass(
-				"net.randomsync.testng.excel.DummyTest")));
+		tc.setConfiguration("classes=net.randomsync.testng.excel.DummyTest");
 		Assert.assertEquals(tc.getXmlClasses().size(), 1);
 	}
 
 	@Test
-	public void getXmlClasses2() {
-		ExcelTestCase tc = new ExcelTestCase(1, "Search",
+	public void testGetXmlClassesBlank() {
+		ExcelTestCase tc = new ExcelTestCase("1.1", "Search",
 				"Perform a search and validate results", null, "classes=");
 		Assert.assertEquals(tc.getXmlClasses().size(), 0);
 	}
 
 	@Test
-	public void getXmlClasses3() {
-		ExcelTestCase tc = new ExcelTestCase(1, "Search",
+	public void testGetXmlClassesMultiple() {
+		ExcelTestCase tc = new ExcelTestCase("1.1", "Search",
 				"Perform a search and validate results", null,
-				"classes=net.randomsync.testng.excel.DummyTest");
+				"classes=abc,def,xyz\nsome=other");
+		List<XmlClass> classes = tc.getXmlClasses();
+		Assert.assertEquals(classes.size(), 3);
+		Assert.assertEquals(classes.get(0).getName(), "abc");
+		Assert.assertEquals(classes.get(1).getName(), "def");
+		Assert.assertEquals(classes.get(2).getName(), "xyz");
+		Properties cfg = tc.getConfigurationAsProperties();
+		Assert.assertEquals(cfg.size(), 2);
+		Assert.assertEquals(cfg.getProperty("classes"), "abc,def,xyz");
+	}
+
+	@Test
+	public void testGetTestAsXmlTest() {
+		ExcelTestCase tc = new ExcelTestCase("1.1", "Search",
+				"Perform a search and validate results", "param1=value1\np2=v2",
+				"classes=net.DummyTest\nmethods=m2");
 		Assert.assertEquals(tc.getXmlClasses().size(), 1);
-		XmlSuite suite = new XmlSuite();
-		System.out.println(tc.getTestAsXmlTest(suite));
+		XmlTest test = tc.getTestAsXmlTest(new XmlSuite());
 		System.out.println(tc);
+		Assert.assertEquals(test.getName(), "1.1.Search");
+		Assert.assertEquals(test.getParameter("param1"), "value1");
+		Assert.assertEquals(test.getClasses().get(0).getName(), "net.DummyTest");
+
 	}
 }

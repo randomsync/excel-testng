@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -82,19 +83,38 @@ public class ExcelSuiteParser {
 
 		FileInputStream fis = new FileInputStream(src);
 		Workbook wb = WorkbookFactory.create(fis);
+		DataFormatter formatter = new DataFormatter();
 
 		// validate values and assign default if needed
 		int headerRow = getMapValue("headerRow", 0);
+		int testIdCol = getMapValue("testIdCol", 0);
 
 		/*
-		 * parse each sheet starting from headerRow
+		 * parse each sheet starting from headerRow. Each row is a test case and
+		 * needs to be added if test id is not blank
 		 */
 		for (int i = 0; i < wb.getNumberOfSheets(); i++) {
 			Sheet sheet = wb.getSheetAt(i);
 			Row row = null;
 			for (int j = headerRow + 1; j <= sheet.getLastRowNum(); j++) {
 				row = sheet.getRow(j);
-				testCases.add(getExcelTestCaseFromRow(row));
+				if (row != null) {
+					if (!formatter.formatCellValue(row.getCell(testIdCol))
+							.isEmpty()) {
+						ExcelTestCase tc = null;
+						try {
+							tc = getExcelTestCaseFromRow(row, formatter);
+
+						} catch (Exception e) {
+							//TODO add specific exception handler
+							e.printStackTrace();
+							// skip the current row and continue
+							continue;
+						}
+						testCases.add(tc);
+					}
+
+				}
 			}
 		}
 		return testCases;
@@ -108,19 +128,21 @@ public class ExcelSuiteParser {
 		this.excelTestDataMap = excelTestDataMap;
 	}
 
-	private ExcelTestCase getExcelTestCaseFromRow(Row row) {
+	private ExcelTestCase getExcelTestCaseFromRow(Row row,
+			DataFormatter formatter){
 		int testIdCol = getMapValue("testIdCol", 0);
 		int testNameCol = getMapValue("testNameCol", 1);
 		int testDescCol = getMapValue("testDescCol", 2);
 		int testParamCol = getMapValue("testParamCol", 3);
 		int testConfigCol = getMapValue("testConfigCol", 4);
 
-		return new ExcelTestCase(Integer.parseInt(row.getCell(testIdCol)
-				.getStringCellValue()), // test id
-				row.getCell(testNameCol).getStringCellValue(), // test name
-				row.getCell(testDescCol).getStringCellValue(), // description
-				row.getCell(testParamCol).getStringCellValue(), // parameters
-				row.getCell(testConfigCol).getStringCellValue()); // configuration
+		return new ExcelTestCase(
+				formatter.formatCellValue(row.getCell(testIdCol)),	//test id 
+				formatter.formatCellValue(row.getCell(testNameCol)), // test name
+				formatter.formatCellValue(row.getCell(testDescCol)), // description
+				formatter.formatCellValue(row.getCell(testParamCol)), // parameters
+				formatter.formatCellValue(row.getCell(testConfigCol)) // configuration
+		);
 
 	}
 

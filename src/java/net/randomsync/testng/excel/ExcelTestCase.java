@@ -9,10 +9,10 @@ import java.util.Properties;
 
 import org.testng.xml.XmlClass;
 import org.testng.xml.XmlSuite;
-import org.testng.xml.XmlTest;;
+import org.testng.xml.XmlTest;
 
 public class ExcelTestCase {
-	public int id;
+	public String id;
 	public String name;
 	public String description;
 	private String parameters;
@@ -21,23 +21,35 @@ public class ExcelTestCase {
 
 	// private Map<XmlClass, List<XmlInclude>> methods;
 
-	public ExcelTestCase(int id, String name, String desc) {
+	public ExcelTestCase(String id, String name, String desc) {
 		this.id = id;
 		this.name = name;
 		this.description = desc;
 	}
 
-	public ExcelTestCase(int id, String name, String desc, String params,
+	public ExcelTestCase(String id, String name, String desc, String params,
 			String config) {
 		this(id, name, desc);
 		this.parameters = params;
 		this.configuration = config;
 	}
 
+	public void setConfiguration(String config) {
+		this.configuration = config;
+
+	}
+
+	public void setParameters(String params) {
+		this.parameters = params;
+
+	}
+
 	/**
-	 * @return the test parameters as Properties object. When ExcelTestCase is
-	 *         initialized, the parameters can be in String format. To get the
-	 *         testData as a Properties object, use this method
+	 * Returns the test parameteres as Properties object. When ExcelTestCase is
+	 * initialized, the parameters are in String format. To get the testData as
+	 * a Properties object, use this method
+	 * 
+	 * @return the test parameters as Properties object.
 	 */
 	public Properties getParametersAsProperties() {
 		if (this.parameters == null)
@@ -63,15 +75,10 @@ public class ExcelTestCase {
 		return cfg;
 	}
 
-	public void setXmlClasses(List<XmlClass> xmlClasses) {
-		this.xmlClasses = xmlClasses;
-
-	}
-
 	/**
-	 * Return the test classes that are a part of this Test. If classes haven't
-	 * been set yet, this method will set them by parsing the classes property
-	 * from test configuration
+	 * Return the test classes as a list of TestNG XmlClass that are a part of
+	 * this Test. If classes haven't been set yet, this method will set them by
+	 * parsing the classes property from test configuration
 	 * 
 	 * @return the List of XmlClass that are a part of this Test
 	 */
@@ -87,7 +94,10 @@ public class ExcelTestCase {
 		List<XmlClass> xmlClasses = new ArrayList<XmlClass>();
 		String[] classes = cfg.getProperty("classes").split(",");
 		for (int i = 0; i < classes.length; i++) {
-			XmlClass cls = new XmlClass(classes[i]);
+			// new XmlClass, using loadClasses false so classes are not loaded.
+			// if class is not found, testng will throw excpetion during
+			// execution
+			XmlClass cls = new XmlClass(classes[i], i, false);
 			xmlClasses.add(i, cls);
 		}
 		this.xmlClasses = xmlClasses;
