@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.testng.ITestNGListener;
 import org.testng.TestNG;
 import org.testng.xml.XmlSuite;
 
@@ -19,6 +20,7 @@ public class ExcelTestNGRunner {
 
 	public ExcelTestNGRunner(String source) {
 		this.source = source;
+		this.testng = new TestNG();
 	}
 
 	/**
@@ -51,15 +53,15 @@ public class ExcelTestNGRunner {
 		if (this.testng == null) {
 			this.testng = new TestNG();
 		}
-		//parse each file into an XmlSuite
+		// parse each file into an XmlSuite
 		List<XmlSuite> suites = new ArrayList<XmlSuite>();
-		for (File file : filesList){
+		for (File file : filesList) {
 			ExcelSuiteParser parser = new ExcelSuiteParser(file);
 			XmlSuite suite = null;
 			try {
 				suite = parser.getXmlSuite();
 			} catch (Exception e) {
-				//any issues with parsing, skip this suite and continue
+				// any issues with parsing, skip this suite and continue
 				e.printStackTrace();
 				continue;
 			}
@@ -67,6 +69,37 @@ public class ExcelTestNGRunner {
 		}
 		testng.setXmlSuites(suites);
 		testng.run();
+	}
+
+	// helper methods to specify testng configuration
+	public void setSuiteThreadPoolSize(int suiteThreadPoolSize) {
+		if (testng != null) {
+			testng.setSuiteThreadPoolSize(suiteThreadPoolSize);
+		}
+	}
+
+	public void addListener(ITestNGListener listener) {
+		if (testng != null) {
+			testng.addListener(listener);
+		}
+	}
+
+	public void setVerbose(int verbose) {
+		if (testng != null) {
+			testng.setVerbose(verbose);
+		}
+	}
+
+	public void setPreserveOrder(boolean order) {
+		if (testng != null) {
+			testng.setPreserveOrder(order);
+		}
+	}
+
+	public void setThreadCount(int threadCount) {
+		if (testng != null) {
+			testng.setThreadCount(threadCount);
+		}
 	}
 
 	class ExcelFileNameFilter implements FilenameFilter {
