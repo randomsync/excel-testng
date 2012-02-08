@@ -2,11 +2,10 @@ package net.randomsync.testng.excel;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -16,23 +15,21 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.testng.TestNGException;
 import org.testng.xml.*;
 
-public class ExcelSuiteParser {
+public class ExcelSuiteParser implements IFileParser<XmlSuite> {
 
-	private File xlSource;
 	private Map<String, Integer> excelTestDataMap;
 	private File testClassesMap;
 
 	/**
-	 * Default constructor, sets the source file and initializes the test data
-	 * map
+	 * Default constructor, initializes the test data map
 	 * 
 	 * @param xlSource
 	 *            - the source Excel file
 	 */
-	public ExcelSuiteParser(File xlSource) {
-		this.xlSource = xlSource;
+	public ExcelSuiteParser() {
 		excelTestDataMap = new HashMap<String, Integer>();
 		excelTestDataMap.put("headerRow", 0);
 		excelTestDataMap.put("testIdCol", 0);
@@ -42,28 +39,48 @@ public class ExcelSuiteParser {
 		excelTestDataMap.put("testConfigCol", 4);
 	}
 
-	public ExcelSuiteParser(File xlSource, Map<String, Integer> excelTestDataMap) {
-		this.xlSource = xlSource;
+	public ExcelSuiteParser(Map<String, Integer> excelTestDataMap) {
 		this.excelTestDataMap = excelTestDataMap;
 	}
 
 	/**
 	 * Parses the Excel file into a TestNG XmlSuite and returns the suite. If
 	 * there are multiple worksheets, all of them are parsed into a single
-	 * XmlSuite and returned.
+	 * XmlSuite and returned. In this implementation, the InputStream is ignored
+	 * and only filePath is used
 	 * 
-	 * @param xlSource
-	 *            - source Excel file
+	 * @param filePath
+	 *            source Excel file or directory
+	 * @param InputStream
+	 *            input stream (not used)
+	 * @param loadClasses
 	 * @return a TestNG XmlSuite with all tests from the Excel file
-	 * @throws IOException
-	 * @throws InvalidFormatException
+	 * @throws TestNGException
+	 * @see org.testng.xml.IFileParser#parse(java.lang.String,
+	 *      java.io.InputStream, boolean)
 	 */
-	public XmlSuite getXmlSuite() throws InvalidFormatException, IOException {
-		String name = xlSource.getName();
-		name = name.substring(0, name.lastIndexOf("."));
-
+	@Override
+	public XmlSuite parse(String filePath, InputStream is, boolean loadClasses)
+			throws TestNGException {
+		// TODO use loadClasses to decide whether to load classes when creating
+		// suites
+		String name = "";
+		File file = null;
+		if (!filePath.isEmpty()) {
+			file = new File(filePath);
+			name = file.getName();
+			name = name.substring(0, name.lastIndexOf("."));
+		}
 		ExcelTestSuite suite = new ExcelTestSuite(name);
-		suite.setTestCases(parseExcelTestCases(xlSource));
+		try {
+			suite.setTestCases(parseExcelTestCases(file));
+		} catch (InvalidFormatException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 		return suite.getSuiteAsXmlSuite();
 	}
@@ -106,7 +123,7 @@ public class ExcelSuiteParser {
 							tc = getExcelTestCaseFromRow(row, formatter);
 
 						} catch (Exception e) {
-							//TODO add specific exception handler
+							// TODO add specific exception handler
 							e.printStackTrace();
 							// skip the current row and continue
 							continue;
@@ -129,16 +146,17 @@ public class ExcelSuiteParser {
 	}
 
 	private ExcelTestCase getExcelTestCaseFromRow(Row row,
-			DataFormatter formatter){
+			DataFormatter formatter) {
 		int testIdCol = getMapValue("testIdCol", 0);
 		int testNameCol = getMapValue("testNameCol", 1);
 		int testDescCol = getMapValue("testDescCol", 2);
 		int testParamCol = getMapValue("testParamCol", 3);
 		int testConfigCol = getMapValue("testConfigCol", 4);
 
-		return new ExcelTestCase(
-				formatter.formatCellValue(row.getCell(testIdCol)),	//test id 
-				formatter.formatCellValue(row.getCell(testNameCol)), // test name
+		return new ExcelTestCase(formatter.formatCellValue(row
+				.getCell(testIdCol)), // test id
+				formatter.formatCellValue(row.getCell(testNameCol)), // test
+																		// name
 				formatter.formatCellValue(row.getCell(testDescCol)), // description
 				formatter.formatCellValue(row.getCell(testParamCol)), // parameters
 				formatter.formatCellValue(row.getCell(testConfigCol)) // configuration
@@ -155,5 +173,4 @@ public class ExcelSuiteParser {
 		}
 		return value;
 	}
-
 }

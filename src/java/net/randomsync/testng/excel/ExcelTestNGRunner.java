@@ -2,18 +2,18 @@ package net.randomsync.testng.excel;
 
 import java.io.File;
 import java.io.FilenameFilter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.testng.ITestNGListener;
 import org.testng.TestNG;
+import org.testng.xml.IFileParser;
 import org.testng.xml.XmlSuite;
 
 public class ExcelTestNGRunner {
 	private String source;
 	private TestNG testng;
+	private IFileParser<XmlSuite> parser;
 
 	public ExcelTestNGRunner() {
 	}
@@ -21,6 +21,11 @@ public class ExcelTestNGRunner {
 	public ExcelTestNGRunner(String source) {
 		this.source = source;
 		this.testng = new TestNG();
+	}
+
+	public ExcelTestNGRunner(String source, IFileParser<XmlSuite> parser) {
+		this(source);
+		this.parser = parser;
 	}
 
 	/**
@@ -33,6 +38,10 @@ public class ExcelTestNGRunner {
 
 	public void setTestng(TestNG testng) {
 		this.testng = testng;
+	}
+
+	public void setParser(IFileParser<XmlSuite> parser) {
+		this.parser = parser;
 	}
 
 	public void run() {
@@ -50,16 +59,20 @@ public class ExcelTestNGRunner {
 		} else {
 			filesList = new File[] { srcFile };
 		}
+		// if testng hasn't been created yet, create it
 		if (this.testng == null) {
 			this.testng = new TestNG();
+		}
+		// get the parser
+		if (parser == null) {
+			parser = new ExcelSuiteParser();
 		}
 		// parse each file into an XmlSuite
 		List<XmlSuite> suites = new ArrayList<XmlSuite>();
 		for (File file : filesList) {
-			ExcelSuiteParser parser = new ExcelSuiteParser(file);
 			XmlSuite suite = null;
 			try {
-				suite = parser.getXmlSuite();
+				suite = parser.parse(file.getAbsolutePath(), null, false);
 			} catch (Exception e) {
 				// any issues with parsing, skip this suite and continue
 				e.printStackTrace();
