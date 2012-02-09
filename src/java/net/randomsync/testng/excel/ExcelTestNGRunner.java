@@ -65,7 +65,7 @@ public class ExcelTestNGRunner {
 		}
 		// get the parser
 		if (parser == null) {
-			parser = new ExcelSuiteParser();
+			parser = new SimpleExcelSuiteParser();
 		}
 		// parse each file into an XmlSuite
 		List<XmlSuite> suites = new ArrayList<XmlSuite>();

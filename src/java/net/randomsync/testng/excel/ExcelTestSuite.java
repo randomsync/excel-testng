@@ -10,7 +10,7 @@ import org.testng.xml.XmlTest;
 public class ExcelTestSuite {
 	public String name;
 	private List<ExcelTestCase> testCases;
-	public Map<String, String> suiteParams;
+	private Map<String, String> suiteParams;
 
 	public ExcelTestSuite(String name) {
 		this.name = name;
