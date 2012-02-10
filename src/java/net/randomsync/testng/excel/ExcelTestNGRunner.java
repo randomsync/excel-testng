@@ -14,25 +14,27 @@ import org.testng.xml.XmlSuite;
 public class ExcelTestNGRunner {
 	private String source;
 	private TestNG testng;
-
-	public ExcelTestNGRunner() {
-	}
+	private IExcelFileParser parser;
 
 	public ExcelTestNGRunner(String source) {
 		this.source = source;
-		this.testng = new TestNG();
 	}
 
-	/**
-	 * @param xlFile
-	 *            - the xlFile to set
-	 */
+	public ExcelTestNGRunner(String source, IExcelFileParser parser) {
+		this.source = source;
+		this.parser = parser;
+	}
+
 	public void setSource(String source) {
 		this.source = source;
 	}
 
 	public void setTestng(TestNG testng) {
 		this.testng = testng;
+	}
+
+	public void setParser(IExcelFileParser parser) {
+		this.parser = parser;
 	}
 
 	public void run() {
@@ -56,10 +58,10 @@ public class ExcelTestNGRunner {
 		// parse each file into an XmlSuite
 		List<XmlSuite> suites = new ArrayList<XmlSuite>();
 		for (File file : filesList) {
-			ExcelSuiteParser parser = new ExcelSuiteParser(file);
+			ExcelSuiteParser parser = new ExcelSuiteParser();
 			XmlSuite suite = null;
 			try {
-				suite = parser.getXmlSuite();
+				suite = parser.parse(file, false);
 			} catch (Exception e) {
 				// any issues with parsing, skip this suite and continue
 				e.printStackTrace();

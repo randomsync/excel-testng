@@ -18,9 +18,8 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.testng.xml.*;
 
-public class ExcelSuiteParser {
+public class ExcelSuiteParser implements IExcelFileParser {
 
-	private File xlSource;
 	private Map<String, Integer> excelTestDataMap;
 	private File testClassesMap;
 
@@ -31,8 +30,7 @@ public class ExcelSuiteParser {
 	 * @param xlSource
 	 *            - the source Excel file
 	 */
-	public ExcelSuiteParser(File xlSource) {
-		this.xlSource = xlSource;
+	public ExcelSuiteParser() {
 		excelTestDataMap = new HashMap<String, Integer>();
 		excelTestDataMap.put("headerRow", 0);
 		excelTestDataMap.put("testIdCol", 0);
@@ -42,8 +40,7 @@ public class ExcelSuiteParser {
 		excelTestDataMap.put("testConfigCol", 4);
 	}
 
-	public ExcelSuiteParser(File xlSource, Map<String, Integer> excelTestDataMap) {
-		this.xlSource = xlSource;
+	public ExcelSuiteParser(Map<String, Integer> excelTestDataMap) {
 		this.excelTestDataMap = excelTestDataMap;
 	}
 
@@ -58,14 +55,22 @@ public class ExcelSuiteParser {
 	 * @throws IOException
 	 * @throws InvalidFormatException
 	 */
-	public XmlSuite getXmlSuite() throws InvalidFormatException, IOException {
-		String name = xlSource.getName();
+	public XmlSuite parse(File file, boolean loadClasses) {
+		String name = file.getName();
 		name = name.substring(0, name.lastIndexOf("."));
 
 		ExcelTestSuite suite = new ExcelTestSuite(name);
-		suite.setTestCases(parseExcelTestCases(xlSource));
+		try {
+			suite.setTestCases(parseExcelTestCases(file));
+		} catch (InvalidFormatException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
-		return suite.getSuiteAsXmlSuite();
+		return suite.getSuiteAsXmlSuite(false);
 	}
 
 	/**
@@ -106,14 +111,13 @@ public class ExcelSuiteParser {
 							tc = getExcelTestCaseFromRow(row, formatter);
 
 						} catch (Exception e) {
-							//TODO add specific exception handler
+							// TODO add specific exception handler
 							e.printStackTrace();
 							// skip the current row and continue
 							continue;
 						}
 						testCases.add(tc);
 					}
-
 				}
 			}
 		}
@@ -129,16 +133,17 @@ public class ExcelSuiteParser {
 	}
 
 	private ExcelTestCase getExcelTestCaseFromRow(Row row,
-			DataFormatter formatter){
+			DataFormatter formatter) {
 		int testIdCol = getMapValue("testIdCol", 0);
 		int testNameCol = getMapValue("testNameCol", 1);
 		int testDescCol = getMapValue("testDescCol", 2);
 		int testParamCol = getMapValue("testParamCol", 3);
 		int testConfigCol = getMapValue("testConfigCol", 4);
 
-		return new ExcelTestCase(
-				formatter.formatCellValue(row.getCell(testIdCol)),	//test id 
-				formatter.formatCellValue(row.getCell(testNameCol)), // test name
+		return new ExcelTestCase(formatter.formatCellValue(row
+				.getCell(testIdCol)), // test id
+				formatter.formatCellValue(row.getCell(testNameCol)), // test
+																		// name
 				formatter.formatCellValue(row.getCell(testDescCol)), // description
 				formatter.formatCellValue(row.getCell(testParamCol)), // parameters
 				formatter.formatCellValue(row.getCell(testConfigCol)) // configuration

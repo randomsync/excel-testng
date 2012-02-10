@@ -18,7 +18,7 @@ public class ExcelTestSuiteTest {
 		suiteparams.put("suitep1", "svalue1");
 		ExcelTestSuite suite = new ExcelTestSuite("Test Suite",
 				Arrays.asList(tc), suiteparams);
-		XmlSuite xmlSuite = suite.getSuiteAsXmlSuite();
+		XmlSuite xmlSuite = suite.getSuiteAsXmlSuite(false);
 		Assert.assertEquals(xmlSuite.getName(), "Test Suite");
 		Assert.assertEquals(xmlSuite.getParameter("suitep1"), "svalue1");
 		// 1 suite level param, 2 test params

@@ -3,6 +3,7 @@ package net.randomsync.testng.excel;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
@@ -17,7 +18,7 @@ public class ExcelTestCase {
 	public String description;
 	private String parameters;
 	private String configuration;
-	private List<XmlClass> xmlClasses;
+	private List<String> classNames; // class names that are a part of this test
 
 	// private Map<XmlClass, List<XmlInclude>> methods;
 
@@ -34,13 +35,33 @@ public class ExcelTestCase {
 		this.configuration = config;
 	}
 
-	public void setConfiguration(String config) {
-		this.configuration = config;
+	public void setClassNames(List<String> classNames) {
+		this.classNames = classNames;
 
 	}
 
 	public void setParameters(String params) {
 		this.parameters = params;
+
+	}
+
+	/**
+	 * Return the test classes that are a part of this Test. If classes are not
+	 * set, this method will parse the classes property from test configuration
+	 * 
+	 * @return the List of class names that are a part of this Test
+	 */
+	public List<String> getClassNames() {
+		if (classNames == null) {
+			Properties cfg = this.getConfigurationAsProperties();
+			if (!cfg.containsKey("classes")
+					|| cfg.getProperty("classes").trim().isEmpty()) {
+				return new ArrayList<String>(); // return an empty list
+			} else
+				return Arrays.asList(cfg.getProperty("classes").split(","));
+
+		}
+		return classNames;
 
 	}
 
@@ -77,32 +98,26 @@ public class ExcelTestCase {
 
 	/**
 	 * Return the test classes as a list of TestNG XmlClass that are a part of
-	 * this Test. If classes haven't been set yet, this method will set them by
-	 * parsing the classes property from test configuration
+	 * this Test. If classes are not set, this method will parse the classes
+	 * property from test configuration
 	 * 
 	 * @return the List of XmlClass that are a part of this Test
 	 */
-	public List<XmlClass> getXmlClasses() {
-		if (this.xmlClasses != null) {
-			return this.xmlClasses;
-		}
-		Properties cfg = this.getConfigurationAsProperties();
-		if (!cfg.containsKey("classes")
-				|| cfg.getProperty("classes").trim().isEmpty()) {
-			return new ArrayList<XmlClass>(); // return an empty list
-		}
-		List<XmlClass> xmlClasses = new ArrayList<XmlClass>();
-		String[] classes = cfg.getProperty("classes").split(",");
-		for (int i = 0; i < classes.length; i++) {
-			// new XmlClass, using loadClasses false so classes are not loaded.
-			// if class is not found, testng will throw excpetion during
-			// execution
-			XmlClass cls = new XmlClass(classes[i], i, false);
-			xmlClasses.add(i, cls);
-		}
-		this.xmlClasses = xmlClasses;
-		return this.xmlClasses;
+	public List<XmlClass> getXmlClasses(boolean loadClasses) {
+		List<XmlClass> xmlClasses = null;
+		List<String> classes = this.getClassNames();
+		if (classes != null) {
+			xmlClasses = new ArrayList<XmlClass>();
+			for (int i = 0; i < classes.size(); i++) {
+				// new XmlClass, loadClasses determines if classes are loaded.
+				// If not loaded and classes are not found, testng will throw
+				// excpetion during execution
+				XmlClass cls = new XmlClass(classes.get(i), i, loadClasses);
+				xmlClasses.add(i, cls);
 
+			}
+		}
+		return xmlClasses;
 	}
 
 	/**
@@ -111,7 +126,7 @@ public class ExcelTestCase {
 	 * @param suite
 	 * @return
 	 */
-	public XmlTest getTestAsXmlTest(XmlSuite suite) {
+	public XmlTest getTestAsXmlTest(XmlSuite suite, boolean loadClasses) {
 		XmlTest xmltest = new XmlTest(suite);
 		xmltest.setName(this.id + "." + this.name); // set name like
 													// "<id>.<name>"
@@ -122,7 +137,7 @@ public class ExcelTestCase {
 			xmltest.addParameter(key, params.getProperty(key));
 		}
 		// add test classes
-		xmltest.setXmlClasses(this.getXmlClasses());
+		xmltest.setXmlClasses(this.getXmlClasses(loadClasses));
 		return xmltest;
 	}
 
