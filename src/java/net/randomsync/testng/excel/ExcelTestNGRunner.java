@@ -1,7 +1,6 @@
 package net.randomsync.testng.excel;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,12 +13,8 @@ import org.testng.xml.XmlSuite;
 
 public class ExcelTestNGRunner {
 	private String source;
-	private TestNG testng;
+	private TestNG testng = new TestNG();
 	private IExcelFileParser parser;
-
-	// TODO implement local variables to hold TestNG configuration parameters,
-	// otherwise the need to set to any custom parameter (like thread count)
-	// will require the user of this class to create TestNG object
 
 	public ExcelTestNGRunner(String source) {
 		this.source = source;
