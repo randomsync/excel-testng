@@ -2,36 +2,29 @@ package net.randomsync.testng.excel;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.testng.ITestNGListener;
 import org.testng.TestNG;
-import org.testng.xml.IFileParser;
 import org.testng.xml.XmlSuite;
 
 public class ExcelTestNGRunner {
 	private String source;
-	private TestNG testng;
-	private IFileParser<XmlSuite> parser;
-
-	public ExcelTestNGRunner() {
-	}
+	private TestNG testng = new TestNG();
+	private IExcelFileParser parser;
 
 	public ExcelTestNGRunner(String source) {
 		this.source = source;
-		this.testng = new TestNG();
 	}
 
-	public ExcelTestNGRunner(String source, IFileParser<XmlSuite> parser) {
-		this(source);
+	public ExcelTestNGRunner(String source, IExcelFileParser parser) {
+		this.source = source;
 		this.parser = parser;
 	}
 
-	/**
-	 * @param xlFile
-	 *            - the xlFile to set
-	 */
 	public void setSource(String source) {
 		this.source = source;
 	}
@@ -40,7 +33,7 @@ public class ExcelTestNGRunner {
 		this.testng = testng;
 	}
 
-	public void setParser(IFileParser<XmlSuite> parser) {
+	public void setParser(IExcelFileParser parser) {
 		this.parser = parser;
 	}
 
@@ -59,28 +52,33 @@ public class ExcelTestNGRunner {
 		} else {
 			filesList = new File[] { srcFile };
 		}
-		// if testng hasn't been created yet, create it
 		if (this.testng == null) {
 			this.testng = new TestNG();
 		}
-		// get the parser
-		if (parser == null) {
-			parser = new SimpleExcelSuiteParser();
+		if (this.parser == null) {
+			this.parser = new ExcelSuiteParser();
 		}
-		// parse each file into an XmlSuite
-		List<XmlSuite> suites = new ArrayList<XmlSuite>();
+		// this will keep a list of all XmlSuites to be run
+		List<XmlSuite> allSuites = new ArrayList<XmlSuite>();
+		// parse each file and each worksheet into an XmlSuite
 		for (File file : filesList) {
-			XmlSuite suite = null;
+			List<XmlSuite> suites = new ArrayList<XmlSuite>();
 			try {
-				suite = parser.parse(file.getAbsolutePath(), null, false);
-			} catch (Exception e) {
+				suites = parser.getXmlSuites(file, false);
+			} catch (InvalidFormatException e) {
+				// e.printStackTrace();
 				// any issues with parsing, skip this suite and continue
-				e.printStackTrace();
+				continue;
+			} catch (IOException e) {
+				// e.printStackTrace();
+				// any issues with parsing, skip this suite and continue
 				continue;
 			}
-			suites.add(suite);
+			for (XmlSuite suite : suites) {
+				allSuites.add(suite);
+			}
 		}
-		testng.setXmlSuites(suites);
+		testng.setXmlSuites(allSuites);
 		testng.run();
 	}
 

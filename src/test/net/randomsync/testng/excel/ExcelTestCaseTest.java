@@ -1,5 +1,6 @@
 package net.randomsync.testng.excel;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -55,16 +56,16 @@ public class ExcelTestCaseTest {
 	public void testGetXmlClasses() {
 		ExcelTestCase tc = new ExcelTestCase("1.1", "Search",
 				"Perform a search and validate results", null, null);
-		Assert.assertEquals(tc.getXmlClasses().size(), 0);
-		tc.setConfiguration("classes=net.randomsync.testng.excel.DummyTest");
-		Assert.assertEquals(tc.getXmlClasses().size(), 1);
+		Assert.assertEquals(tc.getXmlClasses(false).size(), 0);
+		tc.setClassNames(Arrays.asList("net.randomsync.testng.excel.DummyTest"));
+		Assert.assertEquals(tc.getXmlClasses(false).size(), 1);
 	}
 
 	@Test
 	public void testGetXmlClassesBlank() {
 		ExcelTestCase tc = new ExcelTestCase("1.1", "Search",
 				"Perform a search and validate results", null, "classes=");
-		Assert.assertEquals(tc.getXmlClasses().size(), 0);
+		Assert.assertEquals(tc.getXmlClasses(false).size(), 0);
 	}
 
 	@Test
@@ -72,7 +73,7 @@ public class ExcelTestCaseTest {
 		ExcelTestCase tc = new ExcelTestCase("1.1", "Search",
 				"Perform a search and validate results", null,
 				"classes=abc,def,xyz\nsome=other");
-		List<XmlClass> classes = tc.getXmlClasses();
+		List<XmlClass> classes = tc.getXmlClasses(false);
 		Assert.assertEquals(classes.size(), 3);
 		Assert.assertEquals(classes.get(0).getName(), "abc");
 		Assert.assertEquals(classes.get(1).getName(), "def");
@@ -87,8 +88,8 @@ public class ExcelTestCaseTest {
 		ExcelTestCase tc = new ExcelTestCase("1.1", "Search",
 				"Perform a search and validate results", "param1=value1\np2=v2",
 				"classes=net.DummyTest\nmethods=m2");
-		Assert.assertEquals(tc.getXmlClasses().size(), 1);
-		XmlTest test = tc.getTestAsXmlTest(new XmlSuite());
+		Assert.assertEquals(tc.getXmlClasses(false).size(), 1);
+		XmlTest test = tc.getTestAsXmlTest(new XmlSuite(), false);
 		System.out.println(tc);
 		Assert.assertEquals(test.getName(), "1.1.Search");
 		Assert.assertEquals(test.getParameter("param1"), "value1");

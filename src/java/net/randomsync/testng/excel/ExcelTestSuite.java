@@ -53,13 +53,13 @@ public class ExcelTestSuite {
 	 * 
 	 * @return the suite as TestNG XmlSuite
 	 */
-	public XmlSuite getSuiteAsXmlSuite() {
+	public XmlSuite getSuiteAsXmlSuite(boolean loadClasses) {
 		XmlSuite suite = new XmlSuite();
 		suite.setName(this.name);
 		suite.setParameters(this.suiteParams);
 		List<XmlTest> xmltests = new ArrayList<XmlTest>();
 		for (ExcelTestCase tc : this.testCases) {
-			xmltests.add(tc.getTestAsXmlTest(suite));
+			xmltests.add(tc.getTestAsXmlTest(suite, loadClasses));
 		}
 		suite.setTests(xmltests);
 		return suite;
