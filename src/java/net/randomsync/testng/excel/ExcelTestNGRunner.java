@@ -1,6 +1,7 @@
 package net.randomsync.testng.excel;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -15,6 +16,10 @@ public class ExcelTestNGRunner {
 	private String source;
 	private TestNG testng;
 	private IExcelFileParser parser;
+
+	// TODO implement local variables to hold TestNG configuration parameters,
+	// otherwise the need to set to any custom parameter (like thread count)
+	// will require the user of this class to create TestNG object
 
 	public ExcelTestNGRunner(String source) {
 		this.source = source;
@@ -55,21 +60,30 @@ public class ExcelTestNGRunner {
 		if (this.testng == null) {
 			this.testng = new TestNG();
 		}
-		// parse each file into an XmlSuite
-		List<XmlSuite> suites = new ArrayList<XmlSuite>();
+		if (this.parser == null) {
+			this.parser = new ExcelSuiteParser();
+		}
+		// this will keep a list of all XmlSuites to be run
+		List<XmlSuite> allSuites = new ArrayList<XmlSuite>();
+		// parse each file and each worksheet into an XmlSuite
 		for (File file : filesList) {
-			ExcelSuiteParser parser = new ExcelSuiteParser();
-			XmlSuite suite = null;
+			List<XmlSuite> suites = new ArrayList<XmlSuite>();
 			try {
-				suite = parser.parse(file, false);
-			} catch (Exception e) {
+				suites = parser.getXmlSuites(file, false);
+			} catch (InvalidFormatException e) {
+				// e.printStackTrace();
 				// any issues with parsing, skip this suite and continue
-				e.printStackTrace();
+				continue;
+			} catch (IOException e) {
+				// e.printStackTrace();
+				// any issues with parsing, skip this suite and continue
 				continue;
 			}
-			suites.add(suite);
+			for (XmlSuite suite : suites) {
+				allSuites.add(suite);
+			}
 		}
-		testng.setXmlSuites(suites);
+		testng.setXmlSuites(allSuites);
 		testng.run();
 	}
 
