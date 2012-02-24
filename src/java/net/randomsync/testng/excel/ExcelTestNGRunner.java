@@ -37,6 +37,11 @@ public class ExcelTestNGRunner {
 		this.parser = parser;
 	}
 
+	/**
+	 * this is the main method that parses the input file(s) into TestNG
+	 * XmlSuite(s) and then runs them using TestNG.run()
+	 * 
+	 */
 	public void run() {
 		File srcFile = new File(source);
 		File[] filesList = null; // if source is a directory, this will hold the
