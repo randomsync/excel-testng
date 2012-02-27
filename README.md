@@ -8,11 +8,12 @@ __Introduction__
 
 
 
-If you have used [TestNG](http://testng.org) for your testing projects, you know about the features it provides as a framework for test execution, assertions and test reporting. The input to TestNG is an [XML file](http://testng.org/doc/documentation-main.html#testng-xml) that specifies which tests/classes will be a part of test execution and the parameters to pass on to the test methods. The other way is through your own code by using the TestNG object and creating your own XML classes that are a part of [org.testng.xml](http://testng.org/javadocs/org/testng/xml/package-summary.html) package.
+If you have used [TestNG](http://testng.org) for your testing projects, you know about the features it provides as a framework for test execution, assertions and test reporting. The input to TestNG can be in form of an [XML file](http://testng.org/doc/documentation-main.html#testng-xml) that specifies which tests/classes will be a part of test execution and the parameters to pass on to the test methods. The other ways are through command-line, ant etc. or your own code by using the TestNG object and creating your own XML classes that are a part of [org.testng.xml](http://testng.org/javadocs/org/testng/xml/package-summary.html) package.
 
 However, for end to end functional tests, it's much easier to specify the test runs in an Excel spreadsheet. This way, the same format can be used to document the test cases as well as to execute them. This project provides a way to do that. The test cases specified in Excel spreadsheet can be easily distributed to other team members for review, even those who may not need to know about how they will be executed. Once the test classes are created and tests are specified in Excel spreadsheet(s), they can be run simply like this:
 
-    ExcelTestNGRunner runner = new ExcelTestNGRunner("input.xls"); //this can be a single file or a directory, in which case all spreadsheets in that directory are parsed
+    ExcelTestNGRunner runner = new ExcelTestNGRunner("input.xls"); //this can be a single file
+    			 //or a directory, in which case all spreadsheets in that directory are parsed
     runner.run();                                    //run the tests
 	
 The ExcelTestNGRunner parses the spreadsheet(s) (it uses [apache poi](http://poi.apache.org/), so you need to include it in the classpath), creates TestNG XmlSuite(s) using the test specifications and runs them using TestNG (which also needs to be included in the classpath), which takes care of execution and reporting. More information on how the tests need to be formatted in the spreadsheet is below. 
@@ -38,4 +39,6 @@ __Limitations__
 
 2. Also, there is no standard or well accepted format for writing test cases in an Excel file. Every company/project has its own way of specifying test cases. So hopefully, being able to specify a custom parser map or a parser will be helpful in cases where the included parser cannot meet the requirements, even though that means having to write the parsing logic from scratch (atleast in the latter case). One thing that can be done to make it simpler is to extend ExcelSuiteParser and override only the methods that are needed. You can also contact me if you have any suggestsions on making this easier. 
 
-3. One thing that TestNG lacks currently (in my knowledge) is to specify dependencies through the input XML file. Even though not recommended, I find it sometimes unavoidable to have some UI tests dependent on others. One case for example, is when creating a user requires a lot of steps. So in this case, I want to validate user creation in 1 test and use that user Id in other dependent tests. I would like to specify these dependencies when running the tests, not in code and currently, it is not possible to do that.         
+3. One thing that TestNG lacks currently (in my knowledge) is to specify dependencies through the input XML file. Even though not recommended, I find it sometimes unavoidable to have some UI tests dependent on others. One case for example, is when creating a user requires a lot of steps. So in this case, I want to validate user creation in 1 test and use that user Id in other dependent tests. I would like to specify these dependencies when running the tests, not in code and currently, it is not possible to do that.
+
+4. Specifying groups that will be a part of a test execution is not implemented yet but individual tests that will be executed can be controlled.         
