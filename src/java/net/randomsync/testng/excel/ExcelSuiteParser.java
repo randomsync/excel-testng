@@ -103,7 +103,8 @@ public class ExcelSuiteParser implements IExcelFileParser {
 		List<ExcelTestCase> testCases = new ArrayList<ExcelTestCase>();
 
 		// validate values and assign default if needed
-		int headerRow = getMapValue("headerRow", 0);
+		//int headerRow = getMapValue("headerRow", 0);
+		int headerRow = getHeaderRow(sheet);
 		int testIdCol = getMapValue("testIdCol", 0);
 
 		/*
