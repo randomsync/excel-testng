@@ -36,7 +36,7 @@ If your test cases are specified in Excel but in different format, there are 2 l
 1. Custom Parser Map (currently not implemented): You can use the in-built parser but specify your own parser map, which tells the parser where it can find the suite and test data
 2. Custom Parser: You can create your own parser by implementing IExcelFileParser interface. You need to parse the spreadsheet file and return a list of TestNG XmlSuites.
 
-ExcelTestNGRunner also provides helper methods to customize the TestNG object it uses to execute tests. For example, you can specify any custom listeners using addTestNGListener() method. If you need to have more control, you can create your own TestNG object and then pass it to ExcelTestNGRunner. Please see javadocs for more details. 
+ExcelTestNGRunner also provides helper methods to customize the TestNG object it uses to execute tests. For example, you can specify any custom listeners using addTestNGListener() method. If you need to have more control, you can create your own TestNG object and then pass it to ExcelTestNGRunner. Please see [javadocs](http://randomsync.github.com/excel-testng/) for more details. 
 
 ###Putting it Together
 
