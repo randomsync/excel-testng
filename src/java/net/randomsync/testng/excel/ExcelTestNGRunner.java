@@ -5,6 +5,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.testng.ITestNGListener;
@@ -15,6 +16,7 @@ public class ExcelTestNGRunner {
 	private String source;
 	private TestNG testng = new TestNG();
 	private IExcelFileParser parser;
+	private Map<ParserMapConstants, int[]> parserMap;
 
 	public ExcelTestNGRunner(String source) {
 		this.source = source;
@@ -31,6 +33,10 @@ public class ExcelTestNGRunner {
 
 	public void setTestng(TestNG testng) {
 		this.testng = testng;
+	}
+
+	public void setParserMap(Map<ParserMapConstants, int[]> parserMap) {
+		this.parserMap = parserMap;
 	}
 
 	public void setParser(IExcelFileParser parser) {
@@ -60,9 +66,14 @@ public class ExcelTestNGRunner {
 		if (this.testng == null) {
 			this.testng = new TestNG();
 		}
+		//if no custom parser is specified, use default
 		if (this.parser == null) {
-			this.parser = new ExcelSuiteParser();
+			if (this.parserMap == null)
+				this.parser = new ExcelSuiteParser();
+			else
+				this.parser = new ExcelSuiteParser(parserMap);
 		}
+
 		// this will keep a list of all XmlSuites to be run
 		List<XmlSuite> allSuites = new ArrayList<XmlSuite>();
 		// parse each file and each worksheet into an XmlSuite

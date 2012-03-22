@@ -19,40 +19,48 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.testng.xml.*;
 
+/**
+ * The default parser used by ExcelTestNGRunner to parse an Excel file into
+ * TestNG {@link #org XmlSuite}s. The default funtionality is to parse each
+ * worksheet into a separate XMLSuite
+ * 
+ * <p>
+ * This parser can be customized by using a parserMap, which specifies where to
+ * find the Suite and Test data
+ * 
+ * @author <a href = "mailto:gaurav&#64;randomsync.net">Gaurav Gupta</a>
+ * 
+ */
 public class ExcelSuiteParser implements IExcelFileParser {
 
-	public static final String SUITE_NAME_STR = "Suite Name";
-	public static final String SUITE_PARAMS_STR = "Suite Parameters";
-	public static final String TEST_ID_STR = "Id";
-	public static final String TEST_NAME_STR = "Test Name";
-	public static final String TEST_DESC_STR = "Test Description";
-	public static final String TEST_PARAMS_STR = "Test Parameters";
-	public static final String TEST_CONFIG_STR = "Test Configuration";
+	// class variables that can be modified for custom functionality
+	public static String SUITE_NAME_STR = "Suite Name";
+	public static String SUITE_PARAMS_STR = "Suite Parameters";
+	public static String TEST_ID_STR = "Id";
+	public static String TEST_NAME_STR = "Test Name";
+	public static String TEST_DESC_STR = "Test Description";
+	public static String TEST_PARAMS_STR = "Test Parameters";
+	public static String TEST_CONFIG_STR = "Test Configuration";
 
 	// formatter to format cell data
-	public DataFormatter formatter = new DataFormatter();
+	private DataFormatter formatter = new DataFormatter();
 
-	private Map<String, Integer> excelTestDataMap;
+	// this map can be used to customize the location of Suite/Test data
+	private Map<ParserMapConstants, int[]> parserMap;
 
-	/**
-	 * Default constructor, sets the source file and initializes the test data
-	 * map
-	 * 
-	 * @param xlSource
-	 *            - the source Excel file
-	 */
 	public ExcelSuiteParser() {
-		excelTestDataMap = new HashMap<String, Integer>();
-		excelTestDataMap.put("headerRow", 9);
-		excelTestDataMap.put("testIdCol", 0);
-		excelTestDataMap.put("testNameCol", 2);
-		excelTestDataMap.put("testDescCol", 3);
-		excelTestDataMap.put("testParamCol", 4);
-		excelTestDataMap.put("testConfigCol", 5);
 	}
 
-	public ExcelSuiteParser(Map<String, Integer> excelTestDataMap) {
-		this.excelTestDataMap = excelTestDataMap;
+	public ExcelSuiteParser(Map<ParserMapConstants, int[]> parserMap) {
+		this.parserMap = parserMap;
+	}
+
+	/**
+	 * @param parserMap
+	 *            - the Map that will be used to parse Excel file(s)
+	 */
+	public void setParserMap(Map<ParserMapConstants, int[]> parserMap) {
+		this.parserMap = parserMap;
 	}
 
 	/**
@@ -91,7 +99,7 @@ public class ExcelSuiteParser implements IExcelFileParser {
 	/**
 	 * this is the main parser method that parses the Excel file and returns the
 	 * tests within the file. Each row is considered as a test case with
-	 * specific columns (specified by {@link #excelTestDataMap}) as test
+	 * specific columns (specified by {@link #parserMap}) as test
 	 * 
 	 * @return a list of test cases in the Excel file
 	 * @throws IOException
@@ -103,9 +111,10 @@ public class ExcelSuiteParser implements IExcelFileParser {
 		List<ExcelTestCase> testCases = new ArrayList<ExcelTestCase>();
 
 		// validate values and assign default if needed
-		//int headerRow = getMapValue("headerRow", 0);
+		// int headerRow = getMapValue("headerRow", 0);
 		int headerRow = getHeaderRow(sheet);
-		int testIdCol = getMapValue("testIdCol", 0);
+		// int testIdCol = getMapValue("testIdCol", 0);
+		int testIdCol = 0;
 
 		/*
 		 * parse the sheet starting from headerRow. Each row is a test case and
@@ -135,21 +144,13 @@ public class ExcelSuiteParser implements IExcelFileParser {
 		return testCases;
 	}
 
-	/**
-	 * @param excelTestDataMap
-	 *            - the Map that will be used to parse Excel file(s)
-	 */
-	public void setExcelTestDataMap(Map<String, Integer> excelTestDataMap) {
-		this.excelTestDataMap = excelTestDataMap;
-	}
-
 	public ExcelTestCase getExcelTestCaseFromRow(Row row,
 			DataFormatter formatter) {
 		int testIdCol = getMapValue("testIdCol", 0);
-		int testNameCol = getMapValue("testNameCol", 1);
-		int testDescCol = getMapValue("testDescCol", 2);
-		int testParamCol = getMapValue("testParamCol", 3);
-		int testConfigCol = getMapValue("testConfigCol", 4);
+		int testNameCol = getMapValue("testNameCol", 2);
+		int testDescCol = getMapValue("testDescCol", 3);
+		int testParamCol = getMapValue("testParamCol", 4);
+		int testConfigCol = getMapValue("testConfigCol", 5);
 
 		return new ExcelTestCase(formatter.formatCellValue(row
 				.getCell(testIdCol)), // test id
@@ -162,25 +163,63 @@ public class ExcelSuiteParser implements IExcelFileParser {
 
 	}
 
+	/**
+	 * Returns the name of the Suite from the worksheet. If unable to find the
+	 * suite name (for example, if the location is invalid), an empty string is
+	 * returned
+	 * 
+	 * <p>
+	 * If a custom parser map is defined, the value is returned from the cell
+	 * pointed at by the appropriate key. If a custom map is not defined or if
+	 * it doesn't contain the appropriate key, it returns the value from the
+	 * cell adjacent to a cell containing {@link #SUITE_NAME_STR}.
+	 * 
+	 * @param sheet
+	 *            The worksheet to be parsed
+	 * @return Name of the Suite or blank string if not found
+	 */
 	public String getSuiteName(Sheet sheet) {
-		// parse the worksheet and look for first cell containing text
-		// "Suite Name". the next cell is supposed to have the actual name of
-		// the suite. Returns blank string if not found
-		// TODO add custom parser functionality
+
 		Row row;
 		String suiteName = "";
-		for (int i = 0; i <= sheet.getLastRowNum(); i++) {
-			row = sheet.getRow(i);
-			if (row != null){	//skip blank rows
-				for (int j = 0; j <= row.getLastCellNum(); j++) {
-					String cellValue = formatter.formatCellValue(row.getCell(j));
-					if (SUITE_NAME_STR.equals(cellValue)) {
-						suiteName = formatter.formatCellValue(row.getCell(j + 1));
-						return suiteName;
-					}
-
-				}
+		// if parser map is specified, get the suite name from specified cell
+		if (parserMap != null
+				&& parserMap.containsKey(ParserMapConstants.SUITE_NAME_CELL)) {
+			int[] loc = parserMap.get(ParserMapConstants.SUITE_NAME_CELL);
+			int rownum, colnum;
+			try {
+				rownum = loc[0];
+				colnum = loc[1];
+			} catch (ArrayIndexOutOfBoundsException e) {
+				// if location is not specified correctly, return blank
+				// string
+				return "";
 			}
+			// get the suite name from specified cell
+			row = sheet.getRow(rownum);
+			if (row != null) {
+				suiteName = formatter.formatCellValue(row.getCell(colnum));
+			}
+			// if suite name is null, return ""
+			return suiteName != null ? suiteName : "";
+		}
+		// else get suite name from cell next to the one containing
+		// SUITE_NAME_STR
+		else {
+			for (int i = 0; i <= sheet.getLastRowNum(); i++) {
+				row = sheet.getRow(i);
+				if (row != null) { // skip blank rows
+					for (int j = 0; j <= row.getLastCellNum(); j++) {
+						String cellValue = formatter.formatCellValue(row
+								.getCell(j));
+						if (SUITE_NAME_STR.equals(cellValue)) {
+							suiteName = formatter.formatCellValue(row
+									.getCell(j + 1));
+							return suiteName;
+						}
+					}
+				}
+			}// end for
 		}
 		return suiteName;
 	}
@@ -194,7 +233,7 @@ public class ExcelSuiteParser implements IExcelFileParser {
 		Map<String, String> params = new HashMap<String, String>();
 		for (int i = 0; i <= sheet.getLastRowNum(); i++) {
 			row = sheet.getRow(i);
-			if (row != null){	//skip blank rows
+			if (row != null) { // skip blank rows
 				for (int j = 0; j <= row.getLastCellNum(); j++) {
 					String cellValue = formatter
 							.formatCellValue(row.getCell(j));
@@ -223,10 +262,10 @@ public class ExcelSuiteParser implements IExcelFileParser {
 		int headerRow = 0;
 		for (int i = 0; i <= sheet.getLastRowNum(); i++) {
 			row = sheet.getRow(i);
-			if (row != null){	//skip blank rows
+			if (row != null) { // skip blank rows
 				String id = formatter.formatCellValue(row.getCell(0));
 				if (TEST_ID_STR.equals(id)) {
-					headerRow = i;
+					return i;
 				}
 			}
 		}
@@ -235,13 +274,9 @@ public class ExcelSuiteParser implements IExcelFileParser {
 	}
 
 	private int getMapValue(String key, int defaultVal) {
-		int value;
-		try {
-			value = this.excelTestDataMap.get(key);
-		} catch (NullPointerException npe) {
-			return defaultVal;
-		}
-		return value;
+		int[] value;
+		value = this.parserMap.get(key);
+		return value != null ? value[0] : defaultVal;
 	}
 
 }
