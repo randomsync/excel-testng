@@ -92,7 +92,7 @@ public class ExcelSuiteParser implements IExcelFileParser {
 			suite.setTestCases(parseExcelTestCases(sheet));
 			suites.add(suite.getSuiteAsXmlSuite(loadClasses));
 		}
-
+		fis.close();
 		return suites;
 	}
 
@@ -179,7 +179,6 @@ public class ExcelSuiteParser implements IExcelFileParser {
 	 * @return Name of the Suite or blank string if not found
 	 */
 	public String getSuiteName(Sheet sheet) {
-
 		Row row;
 		String suiteName = "";
 		// if parser map is specified, get the suite name from specified cell
@@ -191,8 +190,7 @@ public class ExcelSuiteParser implements IExcelFileParser {
 				rownum = loc[0];
 				colnum = loc[1];
 			} catch (ArrayIndexOutOfBoundsException e) {
-				// if location is not specified correctly, return blank
-				// string
+				// if location is not specified correctly, return blank string
 				return "";
 			}
 			// get the suite name from specified cell
@@ -224,53 +222,122 @@ public class ExcelSuiteParser implements IExcelFileParser {
 		return suiteName;
 	}
 
-	public Map<String, String> getSuiteParams(Sheet sheet) throws IOException {
-		// parse the worksheet and look for first cell containing text
-		// "Suite Parameters". the next cell is supposed to have the actual
-		// suite parameters. Returns empty hashmap if not found
-		// TODO add custom parser functionality
+	/**
+	 * Returns the Suite parameters from the worksheet as a Map. The suite
+	 * parameters are required to be in a single cell in java {@link Properties}
+	 * format. If the parameters are not found or are invalid, an empty map is
+	 * returned.
+	 * 
+	 * <p>
+	 * If a custom parser map is defined, the parameters map is returned from
+	 * the cell pointed at by the appropriate key. If a custom map is not
+	 * defined or if it doesn't contain the appropriate key, it returns the map
+	 * from the cell adjacent to a cell containing {@link #SUITE_PARAMS_STR}.
+	 * 
+	 * @param sheet
+	 *            The worksheet to be parsed
+	 * @return A map containing the suite parameters
+	 */
+	public Map<String, String> getSuiteParams(Sheet sheet) {
 		Row row;
+		String rawParams = null;
 		Map<String, String> params = new HashMap<String, String>();
-		for (int i = 0; i <= sheet.getLastRowNum(); i++) {
-			row = sheet.getRow(i);
-			if (row != null) { // skip blank rows
-				for (int j = 0; j <= row.getLastCellNum(); j++) {
-					String cellValue = formatter
-							.formatCellValue(row.getCell(j));
-					if (SUITE_PARAMS_STR.equals(cellValue)) {
-						Properties p = new Properties();
-						p.load(new StringReader(formatter.formatCellValue(row
-								.getCell(j + 1))));
-						for (Enumeration<?> e = p.keys(); e.hasMoreElements();) {
-							String key = (String) e.nextElement();
-							params.put(key, p.getProperty(key));
+		// if parser map is specified, get the parameters from specified cell
+		if (parserMap != null
+				&& parserMap.containsKey(ParserMapConstants.SUITE_PARAMS_CELL)) {
+			int[] loc = parserMap.get(ParserMapConstants.SUITE_PARAMS_CELL);
+			int rownum, colnum;
+			try {
+				rownum = loc[0];
+				colnum = loc[1];
+			} catch (ArrayIndexOutOfBoundsException e) {
+				// if location is not specified correctly, return empty map
+				return params;
+			}
+			// else get the parameters from specified cell
+			row = sheet.getRow(rownum);
+			if (row != null) {
+				rawParams = formatter.formatCellValue(row.getCell(colnum));
+			}
+		}
+		// else get the parameters from cell next to the one containing
+		// SUITE_PARAMS_STR
+		else {
+			for (int i = 0; i <= sheet.getLastRowNum(); i++) {
+				row = sheet.getRow(i);
+				if (row != null) { // skip blank rows
+					for (int j = 0; j <= row.getLastCellNum(); j++) {
+						String cellValue = formatter.formatCellValue(row
+								.getCell(j));
+						if (SUITE_PARAMS_STR.equals(cellValue)) {
+							rawParams = formatter.formatCellValue(row
+									.getCell(j + 1));
+							break;
 						}
-						return params;
 					}
 				}
+				if (rawParams != null)
+					break;
+			}
+		}
+		if (rawParams != null) {
+			Properties p = new Properties();
+			try {
+				p.load(new StringReader(rawParams));
+			} catch (IOException ioe) {
+				// if there are any issues with reading params, return empty map
+				return params;
+			}
+			for (Enumeration<?> e = p.keys(); e.hasMoreElements();) {
+				String key = (String) e.nextElement();
+				params.put(key, p.getProperty(key));
 			}
 		}
 		return params;
 	}
 
+	/**
+	 * Returns the header row location from the worksheet. Header row is the row
+	 * that contains headers for test specifications and below which, all rows
+	 * are required to be test case specifications.
+	 * 
+	 * <p>
+	 * If a custom parser map is defined, the header row location is returned as
+	 * specified in the map. If a custom map is not defined or if it doesn't
+	 * contain the appropriate key, it searches for the header row by looking
+	 * for {@link #TEST_ID_STR} in the 1st column.
+	 * 
+	 * @param sheet
+	 *            The worksheet to be parsed
+	 * @return the location of header row, or 0 if not found
+	 */
 	public int getHeaderRow(Sheet sheet) {
-		// parse the worksheet and look for first cell in first column
-		// containing text TEST_ID_STR. this will be the header row. returns 0
-		// if not found
-		// TODO add custom parser functionality
 		Row row;
 		int headerRow = 0;
-		for (int i = 0; i <= sheet.getLastRowNum(); i++) {
-			row = sheet.getRow(i);
-			if (row != null) { // skip blank rows
-				String id = formatter.formatCellValue(row.getCell(0));
-				if (TEST_ID_STR.equals(id)) {
-					return i;
+		// if parser map is specified, try to get header row location from there
+		if (parserMap != null
+				&& parserMap.containsKey(ParserMapConstants.HEADER_ROW)) {
+			int[] loc = parserMap.get(ParserMapConstants.HEADER_ROW);
+			try {
+				headerRow = loc[0];
+			} catch (ArrayIndexOutOfBoundsException e) {
+				// if location is not specified correctly, return 0
+				return 0;
+			}
+		}
+		// else look for the row containing TEST_ID_STR in 1st column
+		else {
+			for (int i = 0; i <= sheet.getLastRowNum(); i++) {
+				row = sheet.getRow(i);
+				if (row != null) { // skip blank rows
+					String id = formatter.formatCellValue(row.getCell(0));
+					if (TEST_ID_STR.equals(id)) {
+						return i;
+					}
 				}
 			}
 		}
 		return headerRow;
-
 	}
 
 	private int getMapValue(String key, int defaultVal) {

@@ -13,7 +13,7 @@ public enum ParserMapConstants {
 	/**
 	 * Location of cell containing suite parameters
 	 */
-	SUITE_PARAM_CELL, //
+	SUITE_PARAMS_CELL, //
 	/**
 	 * Location of header row (for tests)
 	 */
