@@ -49,9 +49,19 @@ public class ExcelSuiteParser implements IExcelFileParser {
 	// this map can be used to customize the location of Suite/Test data
 	private Map<ParserMapConstants, int[]> parserMap;
 
+	/**
+	 * Creates a default parser with no custom map
+	 */
 	public ExcelSuiteParser() {
 	}
 
+	/**
+	 * Creates a parser with specified map, which will be used to parse the
+	 * Excel worksheets
+	 * 
+	 * @param parserMap
+	 *            custom parser map to specify the location of suite/test data
+	 */
 	public ExcelSuiteParser(Map<ParserMapConstants, int[]> parserMap) {
 		this.parserMap = parserMap;
 	}
