@@ -74,26 +74,10 @@ public class ExcelSuiteParserTest {
 		Assert.assertEquals(name, "");
 	}
 
-	@Test(description = "Test getSuiteName without parser map - custom SUITE_NAME_STR")
-	public void testGetSuiteName5() {
-		ExcelSuiteParser parser = new ExcelSuiteParser();
-		ExcelSuiteParser.SUITE_NAME_STR = "Suite Description";
-		String name = parser.getSuiteName(sheet);
-		Assert.assertEquals(name, "Google Search Tests on FF browser");
-	}
-
-	@Test(description = "Test getSuiteName without parser map - non-existent SUITE_NAME_STR")
-	public void testGetSuiteName6() {
-		ExcelSuiteParser parser = new ExcelSuiteParser();
-		ExcelSuiteParser.SUITE_NAME_STR = "Nonexistent suite name";
-		String name = parser.getSuiteName(sheet);
-		Assert.assertEquals(name, "");
-	}
-
 	@Test(description = "Test getSuiteParams without parser map")
 	public void testGetSuiteParams1() {
 		ExcelSuiteParser parser = new ExcelSuiteParser();
-		Map<String, String> params = new HashMap<String, String>(); 
+		Map<String, String> params = new HashMap<String, String>();
 		params = parser.getSuiteParams(sheet);
 		Assert.assertEquals(params.size(), 3);
 		Assert.assertEquals(params.get("browser"), "firefox");
@@ -105,7 +89,7 @@ public class ExcelSuiteParserTest {
 		map.put(ParserMapConstants.SUITE_PARAMS_CELL, new int[] { 3, 2 });
 
 		ExcelSuiteParser parser = new ExcelSuiteParser(map);
-		Map<String, String> params = new HashMap<String, String>(); 
+		Map<String, String> params = new HashMap<String, String>();
 		params = parser.getSuiteParams(sheet);
 		Assert.assertEquals(params.size(), 3);
 		Assert.assertEquals(params.get("browser"), "firefox");
@@ -117,7 +101,7 @@ public class ExcelSuiteParserTest {
 		map.put(ParserMapConstants.SUITE_PARAMS_CELL, new int[] { 50, 2 });
 
 		ExcelSuiteParser parser = new ExcelSuiteParser(map);
-		Map<String, String> params = new HashMap<String, String>(); 
+		Map<String, String> params = new HashMap<String, String>();
 		params = parser.getSuiteParams(sheet);
 		Assert.assertEquals(params.size(), 0);
 	}
@@ -128,71 +112,73 @@ public class ExcelSuiteParserTest {
 		map.put(ParserMapConstants.SUITE_PARAMS_CELL, new int[] { 50 });
 
 		ExcelSuiteParser parser = new ExcelSuiteParser(map);
-		Map<String, String> params = new HashMap<String, String>(); 
+		Map<String, String> params = new HashMap<String, String>();
 		params = parser.getSuiteParams(sheet);
 		Assert.assertEquals(params.size(), 0);
 	}
 
-	@Test(description = "Test getSuiteParams without parser map - custom SUITE_PARAMS_STR")
-	public void testGetSuiteParams5() {
-		ExcelSuiteParser parser = new ExcelSuiteParser();
-		ExcelSuiteParser.SUITE_PARAMS_STR = "Suite Description";
-		Map<String, String> params = new HashMap<String, String>(); 
-		params = parser.getSuiteParams(sheet);
-		Assert.assertEquals(params.size(), 1);
-		Assert.assertEquals(params.get("Google"), "Search Tests on FF browser");
-	}
-
-	@Test(description = "Test getSuiteParams without parser map - non-existent SUITE_PARAMS_STR")
-	public void testGetSuiteParams6() {
-		ExcelSuiteParser parser = new ExcelSuiteParser();
-		ExcelSuiteParser.SUITE_PARAMS_STR = "Non existent parameters";
-		Map<String, String> params = new HashMap<String, String>(); 
-		params = parser.getSuiteParams(sheet);
-		Assert.assertEquals(params.size(), 0);
-	}
-
-	@Test(description = "Test getHeaderRow without parser map")
+	@Test(description = "Test getHeaderRow - valid test id col")
 	public void testGetHeaderRow1() {
 		ExcelSuiteParser parser = new ExcelSuiteParser();
-		int headerRow = parser.getHeaderRow(sheet);
+		int headerRow = parser.getHeaderRow(sheet, 0);
 		Assert.assertEquals(headerRow, 7);
 	}
 
-	@Test(description = "Test getHeaderRow without parser map - custom TEST_ID_STR")
+	@Test(description = "Test getHeaderRow - invalid test id col", expectedExceptions = IllegalArgumentException.class)
 	public void testGetHeaderRow2() {
 		ExcelSuiteParser parser = new ExcelSuiteParser();
-		ExcelSuiteParser.TEST_ID_STR = "1.1";
-		int headerRow = parser.getHeaderRow(sheet);
-		Assert.assertEquals(headerRow, 8);
+		int headerRow = parser.getHeaderRow(sheet, -1);
+		Assert.assertEquals(headerRow, 7);
 	}
 
-	@Test(description = "Test getHeaderRow without parser map - non existent TEST_ID_STR")
+	@Test(description = "Test getHeaderRow - not matching test id str")
 	public void testGetHeaderRow3() {
 		ExcelSuiteParser parser = new ExcelSuiteParser();
-		ExcelSuiteParser.TEST_ID_STR = "nonexistent";
-		int headerRow = parser.getHeaderRow(sheet);
+		int headerRow = parser.getHeaderRow(sheet, 2);
 		Assert.assertEquals(headerRow, 0);
 	}
 
-	@Test(description = "Test getHeaderRow with valid parser map")
-	public void testGetHeaderRow4() {
-		Map<ParserMapConstants, int[]> map = new HashMap<ParserMapConstants, int[]>();
-		map.put(ParserMapConstants.HEADER_ROW, new int[] { 50 });
-
-		ExcelSuiteParser parser = new ExcelSuiteParser(map);
-		int headerRow = parser.getHeaderRow(sheet);
-		Assert.assertEquals(headerRow, 50);
+	@Test(description = "Test getTestIdCol without parser map")
+	public void testGetTestIdCol1() {
+		ExcelSuiteParser parser = new ExcelSuiteParser();
+		int testIdCol = parser.getTestIdCol(sheet);
+		Assert.assertEquals(testIdCol, 0);
 	}
 
-	@Test(description = "Test getHeaderRow with incomplete parser map")
-	public void testGetHeaderRow5() {
+	@Test(description = "Test getTestIdCol with parser map but no key")
+	public void testGetTestIdCol2() {
 		Map<ParserMapConstants, int[]> map = new HashMap<ParserMapConstants, int[]>();
-		map.put(ParserMapConstants.HEADER_ROW, new int[] { });
+		map.put(ParserMapConstants.SUITE_PARAMS_CELL, new int[] { 50 });
+		
+		ExcelSuiteParser parser = new ExcelSuiteParser();
+		parser.setParserMap(map);
+		
+		int testIdCol = parser.getTestIdCol(sheet);
+		Assert.assertEquals(testIdCol, 0);
+	}
 
-		ExcelSuiteParser parser = new ExcelSuiteParser(map);
-		int headerRow = parser.getHeaderRow(sheet);
-		Assert.assertEquals(headerRow, 0);
+	@Test(description = "Test getTestIdCol with parser map with valid key")
+	public void testGetTestIdCol3() {
+		Map<ParserMapConstants, int[]> map = new HashMap<ParserMapConstants, int[]>();
+		map.put(ParserMapConstants.TEST_ID_COL, new int[] { 1 });
+		
+		ExcelSuiteParser parser = new ExcelSuiteParser();
+		parser.setParserMap(map);
+		
+		int testIdCol = parser.getTestIdCol(sheet);
+		Assert.assertEquals(testIdCol, 1);
+	}
+
+	@Test(description = "Test getTestIdCol with parser map with incomplete key")
+	public void testGetTestIdCol4() {
+		Map<ParserMapConstants, int[]> map = new HashMap<ParserMapConstants, int[]>();
+		map.put(ParserMapConstants.TEST_ID_COL, new int[] { });
+		
+		ExcelSuiteParser parser = new ExcelSuiteParser();
+		parser.setParserMap(map);
+		
+		int testIdCol = parser.getTestIdCol(sheet);
+		Assert.assertEquals(testIdCol, 0);
 	}
 
 	@AfterClass

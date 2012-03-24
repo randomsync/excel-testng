@@ -21,26 +21,27 @@ import org.testng.xml.*;
 
 /**
  * The default parser used by ExcelTestNGRunner to parse an Excel file into
- * TestNG {@link #org XmlSuite}s. The default funtionality is to parse each
- * worksheet into a separate XMLSuite
+ * TestNG {@link #org XmlSuite}s. It parses each worksheet into a separate suite
+ * and returns a list of all parsed <code>XmlSuite</code>s
  * 
  * <p>
- * This parser can be customized by using a parserMap, which specifies where to
- * find the Suite and Test data
+ * This parser can be customized by using a custom {@link #parserMap}, which
+ * specifies where to find the Suite and Test data. {@link ParserMapConstants}
+ * is used to specify the keys of the map
  * 
  * @author <a href = "mailto:gaurav&#64;randomsync.net">Gaurav Gupta</a>
  * 
  */
 public class ExcelSuiteParser implements IExcelFileParser {
 
-	// class variables that can be modified for custom functionality
-	public static String SUITE_NAME_STR = "Suite Name";
-	public static String SUITE_PARAMS_STR = "Suite Parameters";
-	public static String TEST_ID_STR = "Id";
-	public static String TEST_NAME_STR = "Test Name";
-	public static String TEST_DESC_STR = "Test Description";
-	public static String TEST_PARAMS_STR = "Test Parameters";
-	public static String TEST_CONFIG_STR = "Test Configuration";
+	// default values
+	public static final String SUITE_NAME_STR = "Suite Name";
+	public static final String SUITE_PARAMS_STR = "Suite Parameters";
+	public static final String TEST_ID_STR = "Id";
+	public static final String TEST_NAME_STR = "Test Name";
+	public static final String TEST_DESC_STR = "Test Description";
+	public static final String TEST_PARAMS_STR = "Test Parameters";
+	public static final String TEST_CONFIG_STR = "Test Configuration";
 
 	// formatter to format cell data
 	private DataFormatter formatter = new DataFormatter();
@@ -56,8 +57,11 @@ public class ExcelSuiteParser implements IExcelFileParser {
 	}
 
 	/**
+	 * Set the parser map for this parser. This can be used to customize the
+	 * location of suite/test data that the parser retrieves from Excel files.
+	 * 
 	 * @param parserMap
-	 *            - the Map that will be used to parse Excel file(s)
+	 *            Map that will be used to parse Excel file(s)
 	 */
 	public void setParserMap(Map<ParserMapConstants, int[]> parserMap) {
 		this.parserMap = parserMap;
@@ -76,6 +80,7 @@ public class ExcelSuiteParser implements IExcelFileParser {
 	 * @throws IOException
 	 * @throws InvalidFormatException
 	 */
+	@Override
 	public List<XmlSuite> getXmlSuites(File file, boolean loadClasses)
 			throws InvalidFormatException, IOException {
 
@@ -110,11 +115,19 @@ public class ExcelSuiteParser implements IExcelFileParser {
 
 		List<ExcelTestCase> testCases = new ArrayList<ExcelTestCase>();
 
-		// validate values and assign default if needed
-		// int headerRow = getMapValue("headerRow", 0);
-		int headerRow = getHeaderRow(sheet);
-		// int testIdCol = getMapValue("testIdCol", 0);
-		int testIdCol = 0;
+		// first get the location of Test Id Col
+		int testIdCol = getTestIdCol(sheet);
+		// then get the header row location
+		int headerRow = getHeaderRow(sheet, testIdCol);
+		// then get the rest of Test data colums
+		int testNameCol = getColumnLocation(sheet, headerRow,
+				ParserMapConstants.TEST_NAME_COL, TEST_NAME_STR);
+		int testDescCol = getColumnLocation(sheet, headerRow,
+				ParserMapConstants.TEST_DESC_COL, TEST_DESC_STR);
+		int testParamCol = getColumnLocation(sheet, headerRow,
+				ParserMapConstants.TEST_PARAM_COL, TEST_PARAMS_STR);
+		int testConfigCol = getColumnLocation(sheet, headerRow,
+				ParserMapConstants.TEST_CONFIG_COL, TEST_CONFIG_STR);
 
 		/*
 		 * parse the sheet starting from headerRow. Each row is a test case and
@@ -128,11 +141,19 @@ public class ExcelSuiteParser implements IExcelFileParser {
 						.isEmpty()) {
 					ExcelTestCase tc = null;
 					try {
-						tc = getExcelTestCaseFromRow(row, formatter);
-						// TODO evaluate formulae
-
+						tc = new ExcelTestCase(formatter.formatCellValue(row
+								.getCell(testIdCol)), // id
+								formatter.formatCellValue(row
+										.getCell(testNameCol)),// name
+								formatter.formatCellValue(row
+										.getCell(testDescCol)),// desc
+								formatter.formatCellValue(row
+										.getCell(testParamCol)),// params
+								formatter.formatCellValue(row
+										.getCell(testConfigCol))// config
+						);
 					} catch (Exception e) {
-						// TODO add specific exception handler
+						// TODO add specific exception handlers
 						e.printStackTrace();
 						// skip the current row and continue
 						continue;
@@ -142,25 +163,6 @@ public class ExcelSuiteParser implements IExcelFileParser {
 			}
 		}
 		return testCases;
-	}
-
-	public ExcelTestCase getExcelTestCaseFromRow(Row row,
-			DataFormatter formatter) {
-		int testIdCol = getMapValue("testIdCol", 0);
-		int testNameCol = getMapValue("testNameCol", 2);
-		int testDescCol = getMapValue("testDescCol", 3);
-		int testParamCol = getMapValue("testParamCol", 4);
-		int testConfigCol = getMapValue("testConfigCol", 5);
-
-		return new ExcelTestCase(formatter.formatCellValue(row
-				.getCell(testIdCol)), // test id
-				formatter.formatCellValue(row.getCell(testNameCol)), // test
-																		// name
-				formatter.formatCellValue(row.getCell(testDescCol)), // description
-				formatter.formatCellValue(row.getCell(testParamCol)), // parameters
-				formatter.formatCellValue(row.getCell(testConfigCol)) // configuration
-		);
-
 	}
 
 	/**
@@ -302,48 +304,77 @@ public class ExcelSuiteParser implements IExcelFileParser {
 	 * are required to be test case specifications.
 	 * 
 	 * <p>
-	 * If a custom parser map is defined, the header row location is returned as
-	 * specified in the map. If a custom map is not defined or if it doesn't
-	 * contain the appropriate key, it searches for the header row by looking
-	 * for {@link #TEST_ID_STR} in the 1st column.
+	 * To find the header row, first the location of Test Id column should be
+	 * determined using {@link #getTestIdCol(Sheet)}. The header row is the
+	 * first row that contains {@link #TEST_ID_STR} in that column.
+	 * 
 	 * 
 	 * @param sheet
 	 *            The worksheet to be parsed
+	 * @param testIdCol
+	 *            The column containing the Test Id (0-based)
 	 * @return the location of header row, or 0 if not found
 	 */
-	public int getHeaderRow(Sheet sheet) {
+	public int getHeaderRow(Sheet sheet, int testIdCol) {
 		Row row;
-		int headerRow = 0;
-		// if parser map is specified, try to get header row location from there
+		for (int i = 0; i <= sheet.getLastRowNum(); i++) {
+			row = sheet.getRow(i);
+			if (row != null) { // skip blank rows
+				String id = formatter.formatCellValue(row.getCell(testIdCol));
+				if (TEST_ID_STR.equals(id)) {
+					return i;
+				}
+			}
+		}
+		return 0;
+	}
+
+	/**
+	 * Returns the location of Test Id column from the worksheet.
+	 * 
+	 * If a custom parser map is defined correctly, the value of
+	 * {@link ParserMapConstants#TEST_ID_COL TEST_ID_COL} is returned. If not,
+	 * it defaults to 0.
+	 * 
+	 * @param sheet
+	 *            worksheet to be parsed
+	 * @return the location of Test Id column, or 0 if not found
+	 */
+	public int getTestIdCol(Sheet sheet) {
+		int testIdCol = 0; // default
+		// if parser map is specified, try to get test id column from there
 		if (parserMap != null
-				&& parserMap.containsKey(ParserMapConstants.HEADER_ROW)) {
-			int[] loc = parserMap.get(ParserMapConstants.HEADER_ROW);
+				&& parserMap.containsKey(ParserMapConstants.TEST_ID_COL)) {
+			int[] loc = parserMap.get(ParserMapConstants.TEST_ID_COL);
 			try {
-				headerRow = loc[0];
+				testIdCol = loc[0];
 			} catch (ArrayIndexOutOfBoundsException e) {
 				// if location is not specified correctly, return 0
 				return 0;
 			}
 		}
-		// else look for the row containing TEST_ID_STR in 1st column
-		else {
-			for (int i = 0; i <= sheet.getLastRowNum(); i++) {
-				row = sheet.getRow(i);
-				if (row != null) { // skip blank rows
-					String id = formatter.formatCellValue(row.getCell(0));
-					if (TEST_ID_STR.equals(id)) {
-						return i;
-					}
-				}
+		// else if not specified, default is 0
+		return testIdCol;
+	}
+
+	private int getColumnLocation(Sheet sheet, int rowLoc,
+			ParserMapConstants pMap, String str) {
+		Row row = sheet.getRow(rowLoc);
+		if (parserMap != null && parserMap.containsKey(pMap)) {
+			int[] loc = parserMap.get(pMap);
+			try {
+				return loc[0];
+			} catch (ArrayIndexOutOfBoundsException e) {
+				// if location is not specified correctly, return 0
+				return 0;
 			}
 		}
-		return headerRow;
+		if (row != null) {
+			for (int j = 0; j <= row.getLastCellNum(); j++) {
+				if (str.equals(formatter.formatCellValue(row.getCell(j))))
+					return j;
+			}
+		}
+		return 0;
 	}
-
-	private int getMapValue(String key, int defaultVal) {
-		int[] value;
-		value = this.parserMap.get(key);
-		return value != null ? value[0] : defaultVal;
-	}
-
 }
