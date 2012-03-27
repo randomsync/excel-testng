@@ -15,8 +15,7 @@ public enum ParserMapConstants {
 	 */
 	SUITE_PARAMS_CELL, //
 	/**
-	 * Location of test id column. If this is specified, {@link #HEADER_ROW}
-	 * should also be specified
+	 * Location of test id column.
 	 */
 	TEST_ID_COL,
 	/**

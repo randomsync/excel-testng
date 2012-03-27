@@ -124,7 +124,8 @@ public class ExcelTestCase {
 	 * Returns this test as a TestNG XmlTest
 	 * 
 	 * @param suite
-	 * @return
+	 * @param loadClasses whether to load classes when creating the XmlTest
+	 * @return this test as TestNG XmlTest
 	 */
 	public XmlTest getTestAsXmlTest(XmlSuite suite, boolean loadClasses) {
 		XmlTest xmltest = new XmlTest(suite);

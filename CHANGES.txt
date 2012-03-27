@@ -1,0 +1,13 @@
+Current
+0.7
+
+-Completed implementation of parser map functionality
+-Added ParserMapConstants
+-Added tests for ExcelSuiteParser
+-Added Apache License 2.0
+
+===========================================================================
+
+0.6
+
+-First public release

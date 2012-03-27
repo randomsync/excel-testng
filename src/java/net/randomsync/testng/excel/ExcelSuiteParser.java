@@ -21,8 +21,8 @@ import org.testng.xml.*;
 
 /**
  * The default parser used by ExcelTestNGRunner to parse an Excel file into
- * TestNG {@link #org XmlSuite}s. It parses each worksheet into a separate suite
- * and returns a list of all parsed <code>XmlSuite</code>s
+ * TestNG {@link org.testng.xml.XmlSuite XmlSuite}s. It parses each worksheet
+ * into a separate suite and returns a list of all parsed <code>XmlSuite</code>s
  * 
  * <p>
  * This parser can be customized by using a custom {@link #parserMap}, which
@@ -78,8 +78,8 @@ public class ExcelSuiteParser implements IExcelFileParser {
 	}
 
 	/**
-	 * Parses the Excel file into a TestNG XmlSuite and returns the suite. If
-	 * there are multiple worksheets, each worksheet is parsed into a separate
+	 * Parses the Excel file and returns a list of TestNG XmlSuites. If there
+	 * are multiple worksheets, each worksheet is parsed into a separate
 	 * XmlSuite
 	 * 
 	 * @param file
@@ -112,16 +112,14 @@ public class ExcelSuiteParser implements IExcelFileParser {
 	}
 
 	/**
-	 * this is the main parser method that parses the Excel file and returns the
-	 * tests within the file. Each row is considered as a test case with
-	 * specific columns (specified by {@link #parserMap}) as test
+	 * Parses the worksheet starting with header row and returns a list of test
+	 * cases. Each row is considered as a test case with specific columns
+	 * (specified by {@link #parserMap}) as test data. If there's an error
+	 * parsing any row, it is skipped.
 	 * 
-	 * @return a list of test cases in the Excel file
-	 * @throws IOException
-	 * @throws InvalidFormatException
+	 * @return a list of test cases in the worksheet
 	 */
-	public List<ExcelTestCase> parseExcelTestCases(Sheet sheet)
-			throws InvalidFormatException, IOException {
+	public List<ExcelTestCase> parseExcelTestCases(Sheet sheet) {
 
 		List<ExcelTestCase> testCases = new ArrayList<ExcelTestCase>();
 
@@ -147,12 +145,11 @@ public class ExcelSuiteParser implements IExcelFileParser {
 		for (int j = headerRow + 1; j <= sheet.getLastRowNum(); j++) {
 			row = sheet.getRow(j);
 			if (row != null) {
-				if (!formatter.formatCellValue(row.getCell(testIdCol))
-						.isEmpty()) {
-					ExcelTestCase tc = null;
-					try {
-						tc = new ExcelTestCase(formatter.formatCellValue(row
-								.getCell(testIdCol)), // id
+				try {
+					if (!formatter.formatCellValue(row.getCell(testIdCol))
+							.isEmpty()) {
+						testCases.add(new ExcelTestCase(formatter
+								.formatCellValue(row.getCell(testIdCol)), // id
 								formatter.formatCellValue(row
 										.getCell(testNameCol)),// name
 								formatter.formatCellValue(row
@@ -161,14 +158,14 @@ public class ExcelSuiteParser implements IExcelFileParser {
 										.getCell(testParamCol)),// params
 								formatter.formatCellValue(row
 										.getCell(testConfigCol))// config
-						);
-					} catch (Exception e) {
-						// TODO add specific exception handlers
-						e.printStackTrace();
-						// skip the current row and continue
-						continue;
+								));
 					}
-					testCases.add(tc);
+				} catch (Exception e) {
+					// TODO add specific exception handlers
+					System.err.println("Error parsing test case from row");
+					e.printStackTrace();
+					// skip the current row and continue
+					continue;
 				}
 			}
 		}
@@ -367,6 +364,17 @@ public class ExcelSuiteParser implements IExcelFileParser {
 		return testIdCol;
 	}
 
+	/**
+	 * Returns the location of the column within the specified row. If parser
+	 * map has the column location defined, it is used. Otherwise, the string is
+	 * searched for within the row and the 1st matching cell is returned.
+	 * 
+	 * @param sheet
+	 * @param rowLoc
+	 * @param pMap
+	 * @param str
+	 * @return
+	 */
 	private int getColumnLocation(Sheet sheet, int rowLoc,
 			ParserMapConstants pMap, String str) {
 		Row row = sheet.getRow(rowLoc);
