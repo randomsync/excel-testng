@@ -1,0 +1,61 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>net.randomsync.testng.excel</groupId>
+	<artifactId>excel-testng</artifactId>
+	<version>0.7</version>
+	<packaging>jar</packaging>
+
+	<name>excel-testng</name>
+	<url>http://code.google.com/p/excel-testng/</url>
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://apache.org/licenses/LICENSE-2.0</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+	<developers>
+		<developer>
+			<name>Gaurav Gupta</name>
+		</developer>
+	</developers>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi</artifactId>
+			<version>3.7</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml</artifactId>
+			<version>3.7</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>dom4j</groupId>
+			<artifactId>dom4j</artifactId>
+			<version>1.6.1</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<version>6.2</version>
+			<scope>compile</scope>
+		</dependency>
+	</dependencies>
+	<scm>
+		<url>git@github.com:randomsync/excel-testng.git</url>
+		<connection>scm:git:git@github.com:randomsync/excel-testng.git</connection>
+		<developerConnection>scm:git:git@github.com:randomsync/excel-testng.git</developerConnection>
+		<tag>Java, TestNG, Excel, Testing</tag>
+	</scm>
+	<description>A project that let's you drive your TestNG tests through Excel Files</description>
+</project>
