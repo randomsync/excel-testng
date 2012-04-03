@@ -23,7 +23,7 @@ import org.testng.xml.XmlSuite;
  * @author <a href = "mailto:gaurav&#64;randomsync.net">Gaurav Gupta</a>
  * 
  */
-public class ExcelSuiteParserTest2 {
+public class ExcelSuiteParser2Test {
 	FileInputStream fis;
 	Workbook wb;
 	Sheet sheet;
@@ -31,7 +31,7 @@ public class ExcelSuiteParserTest2 {
 	@BeforeClass
 	public void setUp() throws Exception {
 		try {
-			fis = new FileInputStream("src\\test\\tests.xlsx");
+			fis = new FileInputStream("src\\test\\resources\\tests.xlsx");
 			wb = WorkbookFactory.create(fis);
 		} catch (Exception e) {
 			Assert.fail("Input Excel file not found");
@@ -73,19 +73,19 @@ public class ExcelSuiteParserTest2 {
 	@Test(description = "Test getXmlSuites - invalid file format", expectedExceptions = IllegalArgumentException.class)
 	public void testGetXmlSuites2() throws InvalidFormatException, IOException {
 		ExcelSuiteParser parser = new ExcelSuiteParser();
-		parser.getXmlSuites(new File("src\\test\\testng.xml"), false);
+		parser.getXmlSuites(new File("src\\test\\resources\\testng.xml"), false);
 	}
 
 	@Test(description = "Test getXmlSuites - invalid file ", expectedExceptions = IllegalArgumentException.class)
 	public void testGetXmlSuites3() throws InvalidFormatException, IOException {
 		ExcelSuiteParser parser = new ExcelSuiteParser();
-		parser.getXmlSuites(new File("src\\test\\invalidexcelfile.xls"), false);
+		parser.getXmlSuites(new File("src\\test\\resources\\invalidexcelfile.xls"), false);
 	}
 
 	@Test(description = "Test getXmlSuites")
 	public void testGetXmlSuites4() throws InvalidFormatException, IOException {
 		ExcelSuiteParser parser = new ExcelSuiteParser();
-		List<XmlSuite> suites = parser.getXmlSuites(new File("src\\test\\tests.xlsx"), false);
+		List<XmlSuite> suites = parser.getXmlSuites(new File("src\\test\\resources\\tests.xlsx"), false);
 		Assert.assertEquals(suites.size(), 3);
 		Assert.assertEquals(suites.get(0).getName(),"1.GoogleSearch.FF");
 		Assert.assertEquals(suites.get(1).getName(),"2.GoogleSearch.IE");

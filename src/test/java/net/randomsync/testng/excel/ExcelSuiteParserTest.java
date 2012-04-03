@@ -27,7 +27,7 @@ public class ExcelSuiteParserTest {
 	public void setUp() throws Exception {
 		Workbook wb = null;
 		try {
-			fis = new FileInputStream("src\\test\\tests.xlsx");
+			fis = new FileInputStream("src\\test\\resources\\tests.xlsx");
 			wb = WorkbookFactory.create(fis);
 		} catch (Exception e) {
 			Assert.fail("Input Excel file not found");
