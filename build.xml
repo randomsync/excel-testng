@@ -3,6 +3,9 @@
     <property name="build.dir" value="build" />
     <property name="src.dir" value="src" />
     <property name="lib.dir" value="lib" />
+    <property name="test.dir" value="src/test" />
+    <property name="testng.jar" value="${lib.dir}/testng-6.2.jar" />
+    <property name="report.dir" value="test-output" />
 
     <target name="dump" description="Dumps all properties." >
         <echoproperties />
@@ -26,6 +29,18 @@
 
     <target name="build" depends="init,resolve">
         <javac srcdir="${src.dir}" destdir="${build.dir}" classpathref="lib.path" />
+    </target>
+
+   <target name="run-tests">
+        <echo message="Running tests..." />
+        <taskdef name="testng"
+            classname="org.testng.TestNGAntTask"
+            classpath="${testng.jar}" />
+        <testng classpathref="lib.path"
+            verbose="2" >
+            <classpath location="${build.dir}" />
+            <classfileset dir="${build.dir}" includes="**/*Test.class" />
+        </testng>
     </target>
 
 </project>
