@@ -1,11 +1,16 @@
 <project name="excel-testng" default="build" basedir="." xmlns:ivy="antlib:org.apache.ivy.ant">
 
-    <property name="build.dir" value="build" />
-    <property name="src.dir" value="src" />
-    <property name="lib.dir" value="lib" />
-    <property name="test.dir" value="src/test" />
+    <property name="target" value="${basedir}/target" />
+    <property name="src.dir" value="${basedir}/src/main" />
+    <property name="build.dir" value="${target}/classes" />
+    <property name="test.dir" value="${basedir}/src/test" />
+    <property name="test.resources.dir" value="${basedir}/src//test/resources" />
+    <property name="test.build.dir" value="${target}/test-classes" />
+    <property name="test.output.dir" value="${target}/test-output" />
+    <property name="report.dir" value="${target}/test-output" />
+    
+    <property name="lib.dir" value="${basedir}/lib" />
     <property name="testng.jar" value="${lib.dir}/testng-6.2.jar" />
-    <property name="report.dir" value="test-output" />
 
     <target name="dump" description="Dumps all properties." >
         <echoproperties />
