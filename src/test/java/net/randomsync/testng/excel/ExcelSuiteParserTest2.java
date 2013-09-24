@@ -3,6 +3,7 @@ package net.randomsync.testng.excel;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,11 +28,13 @@ public class ExcelSuiteParserTest2 {
 	FileInputStream fis;
 	Workbook wb;
 	Sheet sheet;
+	URL url = null;
 
 	@BeforeClass
 	public void setUp() throws Exception {
+		url = this.getClass().getResource("/tests.xlsx");
 		try {
-			fis = new FileInputStream("src\\test\\tests.xlsx");
+			fis = new FileInputStream(url.getFile());
 			wb = WorkbookFactory.create(fis);
 		} catch (Exception e) {
 			Assert.fail("Input Excel file not found");
@@ -73,19 +76,21 @@ public class ExcelSuiteParserTest2 {
 	@Test(description = "Test getXmlSuites - invalid file format", expectedExceptions = IllegalArgumentException.class)
 	public void testGetXmlSuites2() throws InvalidFormatException, IOException {
 		ExcelSuiteParser parser = new ExcelSuiteParser();
-		parser.getXmlSuites(new File("src\\test\\testng.xml"), false);
+		URL url = this.getClass().getResource("/testng.xml");
+		parser.getXmlSuites(new File(url.getFile()), false);
 	}
 
 	@Test(description = "Test getXmlSuites - invalid file ", expectedExceptions = IllegalArgumentException.class)
 	public void testGetXmlSuites3() throws InvalidFormatException, IOException {
 		ExcelSuiteParser parser = new ExcelSuiteParser();
-		parser.getXmlSuites(new File("src\\test\\invalidexcelfile.xls"), false);
+		URL url = this.getClass().getResource("/testng.xml");
+		parser.getXmlSuites(new File(url.getFile()), false);
 	}
 
 	@Test(description = "Test getXmlSuites")
 	public void testGetXmlSuites4() throws InvalidFormatException, IOException {
 		ExcelSuiteParser parser = new ExcelSuiteParser();
-		List<XmlSuite> suites = parser.getXmlSuites(new File("src\\test\\tests.xlsx"), false);
+		List<XmlSuite> suites = parser.getXmlSuites(new File(url.getFile()), false);
 		Assert.assertEquals(suites.size(), 3);
 		Assert.assertEquals(suites.get(0).getName(),"1.GoogleSearch.FF");
 		Assert.assertEquals(suites.get(1).getName(),"2.GoogleSearch.IE");

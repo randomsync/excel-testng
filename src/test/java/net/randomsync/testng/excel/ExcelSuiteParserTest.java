@@ -2,6 +2,7 @@ package net.randomsync.testng.excel;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,8 +27,10 @@ public class ExcelSuiteParserTest {
 	@BeforeClass
 	public void setUp() throws Exception {
 		Workbook wb = null;
+		URL url = this.getClass().getResource("/tests.xlsx");
 		try {
-			fis = new FileInputStream("src\\test\\tests.xlsx");
+			fis = new FileInputStream(url.getFile());
+			//fis = new FileInputStream("src\\test\\tests.xlsx");
 			wb = WorkbookFactory.create(fis);
 		} catch (Exception e) {
 			Assert.fail("Input Excel file not found");

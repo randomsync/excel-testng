@@ -1,16 +1,6 @@
 <project name="excel-testng" default="build" basedir="." xmlns:ivy="antlib:org.apache.ivy.ant">
 
-    <property name="target" value="${basedir}/target" />
-    <property name="src.dir" value="${basedir}/src/main" />
-    <property name="build.dir" value="${target}/classes" />
-    <property name="test.dir" value="${basedir}/src/test" />
-    <property name="test.resources.dir" value="${basedir}/src//test/resources" />
-    <property name="test.build.dir" value="${target}/test-classes" />
-    <property name="test.output.dir" value="${target}/test-output" />
-    <property name="report.dir" value="${target}/test-output" />
-    
-    <property name="lib.dir" value="${basedir}/lib" />
-    <property name="testng.jar" value="${lib.dir}/testng-6.2.jar" />
+    <property file="build.properties" />
 
     <target name="dump" description="Dumps all properties." >
         <echoproperties />
@@ -18,9 +8,13 @@
 
     <target name="clean">
         <delete dir="${build.dir}" />
+        <delete dir="${test.build.dir}" />
+        <delete dir="${test.output.dir}" />
+        <delete dir="${target}" />
     </target>
 
     <target name="init">
+        <mkdir dir="${target}" />
         <mkdir dir="${build.dir}" />
     </target>
 
@@ -28,23 +22,38 @@
         <ivy:retrieve log="quiet" />
     </target>
 
-    <path id="lib.path">
+    <path id="lib.cp">
         <fileset dir="${lib.dir}" includes="*.jar" />
     </path>
 
+    <path id="test.cp">
+        <fileset dir="${lib.dir}" includes="*.jar" />
+	<pathelement location="${build.dir}" />
+    </path>
+
     <target name="build" depends="init,resolve">
-        <javac srcdir="${src.dir}" destdir="${build.dir}" classpathref="lib.path" />
+        <javac srcdir="${src.dir}" destdir="${build.dir}" classpathref="lib.cp" />
     </target>
 
-   <target name="run-tests">
-        <echo message="Running tests..." />
+   <target name="test" depends="build">
         <taskdef name="testng"
             classname="org.testng.TestNGAntTask"
             classpath="${testng.jar}" />
-        <testng classpathref="lib.path"
-            verbose="2" >
-            <classpath location="${build.dir}" />
-            <classfileset dir="${build.dir}" includes="**/*Test.class" />
+	<mkdir dir="${test.build.dir}" />
+	<mkdir dir="${test.output.dir}" />
+
+        <echo message="Building tests..." />
+	<javac debug="true" srcdir="${test.dir}" destdir="${test.build.dir}" classpathref="test.cp" />
+        
+	<echo message="Copying test resources..." />
+	<copy todir="${test.build.dir}">
+	    <fileset dir="${test.resources.dir}" />
+	</copy>
+
+        <echo message="Running tests..." />
+        <testng classpathref="test.cp" outputdir="${test.output.dir}" haltOnFailure="true">
+            <classpath location="${test.build.dir}" />
+            <classfileset dir="${test.build.dir}" />
         </testng>
     </target>
 

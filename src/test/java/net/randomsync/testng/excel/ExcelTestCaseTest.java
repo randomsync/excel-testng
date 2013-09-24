@@ -90,7 +90,6 @@ public class ExcelTestCaseTest {
 				"classes=net.DummyTest\nmethods=m2");
 		Assert.assertEquals(tc.getXmlClasses(false).size(), 1);
 		XmlTest test = tc.getTestAsXmlTest(new XmlSuite(), false);
-		System.out.println(tc);
 		Assert.assertEquals(test.getName(), "1.1.Search");
 		Assert.assertEquals(test.getParameter("param1"), "value1");
 		Assert.assertEquals(test.getClasses().get(0).getName(), "net.DummyTest");
