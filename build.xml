@@ -57,4 +57,28 @@
         </testng>
     </target>
 
+    <target name="jar" depends="build,test">
+	    <jar destfile="${target}/${project.fullname}.jar" basedir="${build.dir}" includes="**/*.class" />
+        <jar destfile="${target}/${project.fullname}-srcs.jar" basedir="${src.dir}" />
+    </target>
+
+    <target name="javadocs">
+	    <javadoc sourcepath="${src.dir}" destdir="javadocs" classpathref="lib.cp" />
+    </target>
+
+    <target name="dist-all-zip" depends="jar,javadocs">
+        <property name="zip.dir" value="${project.fullname}" />
+        <zip destfile="${target}/${project.fullname}.zip">
+            <zipfileset dir="${target}" prefix="${zip.dir}">
+                <include name="${project.fullname}.jar" />
+                <include name="${project.fullname}-srcs.jar" />
+            </zipfileset>
+            <zipfileset dir="." prefix="${zip.dir}">
+                <include name="**/*.txt" />
+            </zipfileset>
+            <zipfileset dir="javadocs" prefix="${zip.dir}/javadocs" />
+            <zipfileset dir="${lib.dir}" prefix="${zip.dir}/lib" />
+        </zip>
+    </target>
+
 </project>

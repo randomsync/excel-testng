@@ -17,4 +17,4 @@ Please see the wiki at http://code.google.com/p/excel-testng/w/list
 Licensing
 ---------
 
-Please see the file called LICENSE.TXT
+Please see the file called LICENSE-2.0.TXT
