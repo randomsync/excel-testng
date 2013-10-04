@@ -17,3 +17,19 @@ External Links:
 * [Selenium HQ](http://seleniumhq.org)
 * [Selenium at Google Code](http://code.google.com/p/selenium/)
 
+Building:
+
+1. Install [ant](http://ant.apache.org/manual/install.html) and [ivy](http://ant.apache.org/ivy/history/latest-milestone/install.html)
+
+2. Fork or clone the repo: ```git clone git://github.com/randomsync/excel-testng.git```
+
+3. Build with ant:
+
+    cp excel-testng
+    ant
+
+4. Run tests:
+
+    ant test
+
+
