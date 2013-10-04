@@ -24,7 +24,7 @@ Building:
 ```git clone git://github.com/randomsync/excel-testng.git```
 3. Build with ant:<br>
 ```cp excel-testng```<br> 
-```ant```
+```ant```<br>
 4. Run tests:<br>
  ```ant test```
 
